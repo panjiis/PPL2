@@ -1,103 +1,216 @@
-import Image from "next/image";
+'use client'
+import React, { useState, useEffect } from "react";
+import { useSession } from "@/lib/context/session";
+import { useRouter } from "next/navigation";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragOverlay, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
+import { Select, type SelectOption } from "@/components/ui/select";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { fetchWarehouses } from "@/lib/utils/api";
+import { type Warehouse } from "@/lib/types/warehouses";
+import { mockApi, inventoryOverview } from "@/lib/data/mock-data";
+import {
+  InventoryWidget,
+  WarehouseWidget,
+  CommissionWidget,
+  SalesReportWidget,
+  RevenueWidget,
+  TopProductWidget,
+  TransactionsWidget
+} from "@/components/dashboard/widgets";
+import { DraggableWidget } from "@/components/dashboard/draggable-widget";
+
+const timeRangeOptions: SelectOption[] = [
+  { value: "today", label: "Today" },
+  { value: "thisWeek", label: "This Week" },
+  { value: "thisMonth", label: "This Month" },
+  { value: "thisYear", label: "This Year" },
+  { value: "allTime", label: "All Time" },
+];
+
+type WidgetId = 'inventory' | 'warehouse' | 'commission' | 'salesReport' | 'revenue' | 'topProduct' | 'transactions';
+
+interface WidgetLayout {
+  id: WidgetId;
+  gridClass: string;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { session, isLoading } = useSession();
+  const router = useRouter();
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [timeRange, setTimeRange] = useState("today");
+  const [analyticsData, setAnalyticsData] = useState(() => mockApi.getAnalyticsData(timeRange));
+  const [activeId, setActiveId] = useState<WidgetId | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+  const [topWidgets, setTopWidgets] = useState<WidgetLayout[]>([
+    { id: 'inventory', gridClass: 'lg:col-span-2 lg:row-span-2' },
+    { id: 'warehouse', gridClass: 'lg:col-span-2' },
+    { id: 'commission', gridClass: 'lg:col-span-2' },
+  ]);
+
+  const [bottomWidgets, setBottomWidgets] = useState<WidgetLayout[]>([
+    { id: 'salesReport', gridClass: 'lg:col-span-2 lg:row-span-2' },
+    { id: 'revenue', gridClass: '' },
+    { id: 'topProduct', gridClass: '' },
+    { id: 'transactions', gridClass: '' },
+  ]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  useEffect(() => {
+    const newData = mockApi.getAnalyticsData(timeRange);
+    setAnalyticsData(newData);
+  }, [timeRange]);
+
+  useEffect(() => {
+    if (isLoading || !session) return;
+    (async () => {
+      try {
+        const fetched = await fetchWarehouses(session.token);
+        setWarehouses(fetched);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, [session, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading && !session) {
+      router.push("/login");
+    }
+  }, [session, isLoading, router]);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as WidgetId);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      setActiveId(null);
+      return;
+    }
+
+    const isTopWidget = topWidgets.some(w => w.id === active.id);
+    const isOverTopWidget = topWidgets.some(w => w.id === over.id);
+
+    if (isTopWidget && isOverTopWidget) {
+      setTopWidgets((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    } else if (!isTopWidget && !isOverTopWidget) {
+      setBottomWidgets((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+
+    setActiveId(null);
+  };
+
+  const renderWidget = (id: WidgetId) => {
+    switch (id) {
+      case 'inventory':
+        return <InventoryWidget data={inventoryOverview} router={router} />;
+      case 'warehouse':
+        return <WarehouseWidget warehouses={warehouses} router={router} />;
+      case 'commission':
+        return <CommissionWidget data={analyticsData.commissionOverview} router={router} />;
+      case 'salesReport':
+        return <SalesReportWidget data={analyticsData.salesReport} />;
+      case 'revenue':
+        return <RevenueWidget data={analyticsData.revenueWidget} />;
+      case 'topProduct':
+        return <TopProductWidget data={analyticsData.topProductWidget} />;
+      case 'transactions':
+        return <TransactionsWidget data={analyticsData.transactionsWidget} />;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center">
+        <p className="font-mono">Loading session...</p>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center">
+        <p className="font-mono">Redirecting to login...</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex-1 space-y-4 bg-background">
+      <Breadcrumbs />
+      <div className="flex flex-col md:flex-row justify-between space-y-2 mt-8 md:mt-16 mb-10">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-bold tracking-tight md:text-nowrap">Welcome, {session.user.username || 'User'}.</h1>
+          <p className="text-[hsl(var(--muted-foreground))]">Here is your business summary.</p>
+        </div>
+        <Select
+          className="w-[180px] md:ml-auto"
+          options={timeRangeOptions}
+          value={timeRange}
+          onChange={(selectedValue) => setTimeRange(selectedValue)}
+        />
+      </div>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={topWidgets.map(w => w.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {topWidgets.map((widget) => (
+              <DraggableWidget key={widget.id} id={widget.id} gridClass={widget.gridClass}>
+                {renderWidget(widget.id)}
+              </DraggableWidget>
+            ))}
+          </div>
+        </SortableContext>
+
+        <div className="flex items-center justify-between space-y-2 mt-8">
+          <h2 className="text-2xl font-bold tracking-tight">Business Analytics</h2>
+        </div>
+
+        <SortableContext items={bottomWidgets.map(w => w.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {bottomWidgets.map((widget) => (
+              <DraggableWidget key={widget.id} id={widget.id} gridClass={widget.gridClass}>
+                {renderWidget(widget.id)}
+              </DraggableWidget>
+            ))}
+          </div>
+        </SortableContext>
+
+        <DragOverlay>
+          {activeId ? (
+            <div className="opacity-50">
+              {renderWidget(activeId)}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </main>
   );
 }
