@@ -2,14 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "@/lib/context/session";
 import { useRouter } from "next/navigation";
-import { fetchStocks } from "@/lib/utils/api";
+import { fetchProducts } from "@/lib/utils/api";
 import { Stock } from "@/lib/types/stocks";
-import { CreateStockModal } from "@/components/inventory/create-stock-modal";
-import { UpdateStockModal } from "@/components/inventory/update-stock-modal";
+import { Product } from "@/lib/types/products";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { DataView } from "@/components/ui/data-view";
-import { MoreHorizontal, PlusIcon } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown";
 
@@ -18,56 +17,41 @@ export default function StocksPage() {
   const router = useRouter();
 
   const [stocks, setStocks] = useState<Stock[]>([]);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [updateModalOpen, setUpdateModalOpen] = useState(false);
-  const [editingStock, setEditingStock] = useState<Stock | null>(null);
 
   useEffect(() => {
-    if (isLoading || !session) return;
-    (async () => {
-      try {
-        const fetched = await fetchStocks(session.token, 1, 1);
-        setStocks(fetched);
-      } catch (err) {
-        console.error(err);
-      }
-    })();
-  }, [session, isLoading]);
+  if (isLoading || !session) return;
+  (async () => {
+    try {
+      const fetchedProducts = await fetchProducts(session.token);
+      console.log("Fetched products:", fetchedProducts);
 
-  const handleStockCreated = (newStock: Stock) => {
-    setStocks((prev) => [...prev, newStock]);
-  };
+      const allStocks: Stock[] = fetchedProducts.flatMap((product: Product) =>
+        (product.stocks || []).map((s) => ({
+          ...s,
+          product,
+        }))
+      );
 
-  const handleStockUpdated = (updated: Stock) => {
-    setStocks((prev) =>
-      prev.map((w) => (w.id === updated.id ? updated : w))
-    );
-    setEditingStock(null);
-  };
+      console.log("All stocks:", allStocks);
+
+      setStocks(allStocks);
+    } catch (err) {
+      console.error(err);
+    }
+  })();
+}, [session, isLoading]);
 
   const stockColumns: ColumnDef<Stock>[] = [
+    { accessorKey: "id",
+      header: "ID" },
     {
-      accessorKey: "id",
-      header: "ID",
-      meta: { type: "number" as const },
-    },
-    {
-      accessorKey: "product_id",
-      header: "Product ID",
+      accessorKey: "product.product_name",
+      header: "Product",
       meta: { type: "string" as const },
     },
     {
-      accessorKey: "product",
-      header: "Product",
-      cell: ({ row }) => row.original.product?.product_name || "—",
-      filterFn: (row, _columnId, filterValue) => {
-        const name = row.original.product?.product_name?.toLowerCase() ?? "";
-        return name.includes(filterValue.toLowerCase());
-      },
-    },
-    {
-      accessorKey: "warehouse_id",
-      header: "Warehouse ID",
+      accessorKey: "warehouse.warehouse_name",
+      header: "Warehouse",
       meta: { type: "string" as const },
     },
     {
@@ -80,10 +64,9 @@ export default function StocksPage() {
       header: "Reserved Quantity",
       meta: { type: "number" as const },
     },
-    {
+    { 
       accessorKey: "unit_cost",
-      header: "Unit Cost",
-      meta: { type: "string" as const },
+      header: "Unit Cost" 
     },
     {
       accessorKey: "last_restock_date",
@@ -101,25 +84,25 @@ export default function StocksPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push(`products/${row.original.id}`)}>
+            <DropdownMenuItem onClick={() => null }>
               Check Stock
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`products/${row.original.id}`)}>
+            <DropdownMenuItem onClick={() => null }>
               Release Stock
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`products/${row.original.id}`)}>
+            <DropdownMenuItem onClick={() => null }>
               Reserve Stock
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`products/${row.original.id}`)}>
+            <DropdownMenuItem onClick={() => null }>
               Transfer Stock
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`products/${row.original.id}`)}>
+            <DropdownMenuItem onClick={() => null }>
               Update Stock
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`products/${row.original.product_id}`)}>
+            <DropdownMenuItem onClick={() => router.push(`/inventory/products/${row.original.product_id}`) }>
               View Product
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`product-types/${row.original.warehouse_id}`)}>
+            <DropdownMenuItem onClick={() => router.push(`/inventory/warehouse/${row.original.warehouse_id}`) }>
               View Warehouse
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -134,27 +117,11 @@ export default function StocksPage() {
     <div>
       <Breadcrumbs />
 
-      <CreateStockModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onCreated={handleStockCreated}
-      />
-
-      <UpdateStockModal
-        open={updateModalOpen}
-        onClose={() => setUpdateModalOpen(false)}
-        onUpdated={handleStockUpdated}
-        stock={editingStock}
-      />
-
       <div className="flex items-center justify-between w-full mt-8 md:mt-16 mb-10">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold">Stock Management</h1>
           <p className="text-[hsl(var(--muted-foreground))]">Manage your stocks here.</p>
         </div>
-        <Button size="icon" onClick={() => setCreateModalOpen(true)}>
-          <PlusIcon />
-        </Button>
       </div>
 
       <DataView<Stock, unknown>

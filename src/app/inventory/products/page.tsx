@@ -10,10 +10,14 @@ import { fetchProducts } from "@/lib/utils/api";
 import { MoreHorizontal, PlusIcon } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown";
-import router from "next/router";
+import { useRouter } from "next/navigation";
+import { CreateProductModal } from "@/components/inventory/create-product-modal";
+import { UpdateProductModal } from "@/components/inventory/update-product-modal";
 
 export default function ProductPage() {
   const { session, isLoading } = useSession();
+  const router = useRouter();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -26,6 +30,19 @@ export default function ProductPage() {
       .catch(console.error);
   }, [session, isLoading]);
 
+  const handleProductCreated = async () => {
+    if (!session) return;
+    const refreshed = await fetchProducts(session.token);
+    setProducts(refreshed);
+  };
+
+  const handleProductUpdated = (updated: Product) => {
+    setProducts((prev) =>
+      prev.map((u) => (u.id === updated.id ? updated : u))
+    );
+    setEditingProduct(null);
+  };
+
   const productColumns: ColumnDef<Product>[] = [
     {
       accessorKey: "id",
@@ -36,6 +53,9 @@ export default function ProductPage() {
       accessorKey: "product_code",
       header: "Product Code",
       meta: { type: "string" as const },
+      cell: ({ getValue }) => (
+        <span className="font-mono">{getValue<string>()}</span>
+      ),
     },
     { 
       accessorKey: "product_name",
@@ -62,6 +82,21 @@ export default function ProductPage() {
       },
       meta: { type: "string" as const },
     },
+    { 
+      accessorKey: "unit_of_measure",
+      header: "Unit of Measure",
+      meta: { type: "string" as const },
+    },
+    { 
+      accessorKey: "reorder_level",
+      header: "Reorder Level",
+      meta: { type: "number" as const },
+    },
+    { 
+      accessorKey: "max_stock_level",
+      header: "Max Stock Level",
+      meta: { type: "number" as const },
+    },
     {
       accessorKey: "is_active",
       header: "Active",
@@ -79,8 +114,15 @@ export default function ProductPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push(`/products/${row.original.id}`)}>
+            <DropdownMenuItem onClick={() => router.push(`/inventory/products/${row.original.product_code}`)}>
               View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setEditingProduct(row.original);
+                setEditModalOpen(true);
+              }}>
+              Edit Product
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -92,12 +134,28 @@ export default function ProductPage() {
     <div>
       <Breadcrumbs />
 
+      <CreateProductModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreated={handleProductCreated}
+      />
+
+      <UpdateProductModal
+        open={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditingProduct(null);
+        }}
+        onUpdated={handleProductUpdated}
+        product={editingProduct}
+      />
+
       <div className="flex items-center justify-between w-full mt-8 md:mt-16 mb-10">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold">Product Management</h1>
           <p className="text-[hsl(var(--muted-foreground))]">Manage your products here.</p>
         </div>
-        <Button size="icon">
+        <Button size="icon" onClick={() => setCreateModalOpen(true)}>
           <PlusIcon />
         </Button>
       </div>
@@ -107,7 +165,7 @@ export default function ProductPage() {
         columns={productColumns}
         searchableColumn="product_name"
         caption="List of products in system."
-        onCreate={() => null}
+        onCreate={() => setCreateModalOpen(true)}
         renderListItem={(product) => (
           <div
             key={product.id}

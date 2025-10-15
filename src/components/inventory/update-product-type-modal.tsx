@@ -90,7 +90,7 @@ export function UpdateProductTypeModal({
     <Modal open={open} onClose={onClose}>
       <Card>
         <CardHeader>
-          <CardTitle>Create ProductType</CardTitle>
+          <CardTitle>Create Product Type</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">

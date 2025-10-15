@@ -13,7 +13,7 @@ export const toTitleCase = (str: string) => {
         .join(" ");
 };
 
-export function formatCurrency(value: number, locale = "en-US", currency = "IDR"): string {
+export function formatCurrency(value: number, locale = "id-ID", currency = "IDR"): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,

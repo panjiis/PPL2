@@ -55,6 +55,9 @@ export default function SuppliersPage() {
       accessorKey: "supplier_code",
       header: "Code",
       meta: { type: "string" as const },
+      cell: ({ getValue }) => (
+        <span className="font-mono">{getValue<string>()}</span>
+      ),
     },
     {
       accessorKey: "supplier_name",
@@ -102,7 +105,7 @@ export default function SuppliersPage() {
                 setEditModalOpen(true);
               }}
             >
-              Edit User
+              Edit Supplier
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
