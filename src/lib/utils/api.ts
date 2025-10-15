@@ -206,8 +206,8 @@ export async function fetchProducts(token: string): Promise<Product[]> {
   return json.data;
 }
 
-export async function fetchProductById(token: string, product_id: string): Promise<Product> {
-  const res = await fetch(`${BASE_URL}/inventory/products/${product_id}`, {
+export async function fetchProductById(token: string, id: number): Promise<Product> {
+  const res = await fetch(`${BASE_URL}/inventory/products/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const json = await handleResponse<ProductResponse>(res);
@@ -235,8 +235,8 @@ export async function createProduct(token: string, product: Partial<Product>): P
   return json.data;
 }
 
-export async function updateProductById(token: string, product_id: string, product: Partial<Product>): Promise<Product> {
-  const res = await fetch(`${BASE_URL}/inventory/products/${product_id}`, {
+export async function updateProductById(token: string, id: number, product: Partial<Product>): Promise<Product> {
+  const res = await fetch(`${BASE_URL}/inventory/products/${id}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -302,8 +302,8 @@ export async function updateProductTypeById(token: string, product_type_id: numb
 
 // === Stocks ===
 
-export async function fetchStocks(token: string, product_id: number, warehouse_id: number): Promise<Stock[]> {
-  const res = await fetch(`${BASE_URL}/inventory/stocks?product_id=${product_id}&warehouse_id=${warehouse_id}`, {
+export async function fetchStocks(token: string, id: number, warehouse_id: number): Promise<Stock[]> {
+  const res = await fetch(`${BASE_URL}/inventory/stocks?id=${id}&warehouse_id=${warehouse_id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const json = await handleResponse<StocksResponse>(res);
@@ -394,7 +394,7 @@ export async function fetchSuppliers(token: string): Promise<Supplier[]> {
   return json.data;
 }
 
-export async function fetchSupplierById(token: string, supplier_id: string): Promise<Supplier> {
+export async function fetchSupplierById(token: string, supplier_id: number): Promise<Supplier> {
   const res = await fetch(`${BASE_URL}/inventory/suppliers/${supplier_id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -423,7 +423,7 @@ export async function createSupplier(token: string, supplier: Partial<Supplier>)
   return json.data;
 }
 
-export async function updateSupplierById(token: string, supplier_id: string, supplier: Partial<Supplier>): Promise<Supplier> {
+export async function updateSupplierById(token: string, supplier_id: number, supplier: Partial<Supplier>): Promise<Supplier> {
   const res = await fetch(`${BASE_URL}/inventory/suppliers/${supplier_id}`, {
     method: "PUT",
     headers: {

@@ -7,8 +7,9 @@ import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import type { Supplier } from "@/lib/types/suppliers";
-import { createSupplier, fetchSupplierByCode } from "@/lib/utils/api";
+import { createSupplier, fetchSupplierById } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 export function CreateSupplierModal({
   open,
@@ -39,6 +40,15 @@ export function CreateSupplierModal({
         setForm({ ...form, [e.target.name]: value });
     };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const phoneNumber = parsePhoneNumberFromString(raw, "ID"); // default region = Indonesia
+    setForm({
+        ...form,
+        phone: phoneNumber ? phoneNumber.formatInternational() : raw,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
@@ -56,7 +66,7 @@ export function CreateSupplierModal({
             ...form
         });
 
-        const newSupplier = await fetchSupplierByCode(session.token, created.supplier_code);
+        const newSupplier = await fetchSupplierById(session.token, created.id);
 
         onCreated(newSupplier);
 
@@ -105,29 +115,36 @@ export function CreateSupplierModal({
             />
             <Input
               label="Supplier Name"
-              name="contact_person"
+              name="supplier_name"
               placeholder="Supplier Name"
+              value={form.supplier_name}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              label="Contact Person"
+              name="contact_person"
+              placeholder="Contact Person"
               value={form.contact_person}
               onChange={handleChange}
             />
             <Input
-              label="Phone"
-              name="phone"
-              placeholder="Supplier Name"
-              value={form.phone}
-              onChange={handleChange}
+                label="Phone"
+                value={form.phone || ""}
+                onChange={handlePhoneChange}
+                placeholder="+XX XXX XXXX XXXX"
             />
             <Input
               label="Email"
               name="email"
-              placeholder="Supplier Name"
+              placeholder="Email"
               value={form.email}
               onChange={handleChange}
             />
             <Input
               label="Address"
               name="address"
-              placeholder="Supplier Name"
+              placeholder="Address"
               value={form.address}
               onChange={handleChange}
             />

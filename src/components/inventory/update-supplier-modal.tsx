@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import type { Supplier } from "@/lib/types/suppliers";
 import { fetchSupplierById, updateSupplierById } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 export function UpdateSupplierModal({
   open,
@@ -55,6 +56,15 @@ export function UpdateSupplierModal({
     setForm({ ...form, [e.target.name]: value });
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const phoneNumber = parsePhoneNumberFromString(raw, "ID"); // default region = Indonesia
+    setForm({
+        ...form,
+        phone: phoneNumber ? phoneNumber.formatInternational() : raw,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -69,12 +79,12 @@ export function UpdateSupplierModal({
     setLoading(true);
     try {
       // Update the supplier
-      await updateSupplierById(session.token, supplier.supplier_code, {
+      await updateSupplierById(session.token, supplier.id, {
         ...form
       });
 
       // Re-fetch to ensure we have latest fields (role, timestamps, etc.)
-      const updatedSupplier = await fetchSupplierById(session.token, supplier.supplier_code);
+      const updatedSupplier = await fetchSupplierById(session.token, supplier.id);
 
       onUpdated(updatedSupplier);
 
@@ -115,29 +125,36 @@ export function UpdateSupplierModal({
             />
             <Input
               label="Supplier Name"
-              name="contact_person"
+              name="supplier_name"
               placeholder="Supplier Name"
+              value={form.supplier_name}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              label="Contact Person"
+              name="contact_person"
+              placeholder="Contact Person"
               value={form.contact_person}
               onChange={handleChange}
             />
             <Input
-              label="Phone"
-              name="phone"
-              placeholder="Supplier Name"
-              value={form.phone}
-              onChange={handleChange}
+                label="Phone"
+                value={form.phone || ""}
+                onChange={handlePhoneChange}
+                placeholder="+XX XXX XXXX XXXX"
             />
             <Input
               label="Email"
               name="email"
-              placeholder="Supplier Name"
+              placeholder="Email"
               value={form.email}
               onChange={handleChange}
             />
             <Input
               label="Address"
               name="address"
-              placeholder="Supplier Name"
+              placeholder="Address"
               value={form.address}
               onChange={handleChange}
             />
