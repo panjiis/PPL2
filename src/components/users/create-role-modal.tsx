@@ -88,6 +88,7 @@ export function CreateRoleModal({
           <CardContent className="space-y-4">
             <Input
               name="role_name"
+              label="Role Name"
               placeholder="Role Name"
               value={form.role_name}
               onChange={handleChange}
@@ -96,6 +97,7 @@ export function CreateRoleModal({
             <Input
               name="access_level"
               type="number"
+              label="Access Level"
               placeholder="Access Level"
               value={form.access_level}
               onChange={handleChange}
@@ -105,6 +107,7 @@ export function CreateRoleModal({
             />
             <Input
               name="permissions"
+              label="Permissions"
               placeholder="Permissions"
               value={form.permissions}
               onChange={handleChange}

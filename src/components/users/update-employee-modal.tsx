@@ -47,7 +47,14 @@ export function UpdateEmployeeModal({
   };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+
+    if (type === "number") {
+      const intValue = parseInt(value, 10);
+      setForm({ ...form, [name]: isNaN(intValue) ? 0 : intValue });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,6 +112,7 @@ export function UpdateEmployeeModal({
             {form.commission_type === 1 && (
                 <Input
                     label="Commission Rate"
+                    type="number"
                     value={form.commission_rate}
                     onChange={(e) =>
                     setForm({ ...form, commission_rate: e.target.value })

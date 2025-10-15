@@ -43,7 +43,14 @@ export function CreateEmployeeModal({
     ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+
+    if (type === "number") {
+      const intValue = parseInt(value, 10);
+      setForm({ ...form, [name]: isNaN(intValue) ? 0 : intValue });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
