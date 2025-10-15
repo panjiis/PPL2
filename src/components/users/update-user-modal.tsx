@@ -7,8 +7,10 @@ import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import type { User } from "@/lib/types/users";
-import { fetchUserById, updateUserById } from "@/lib/utils/api";
+import { fetchUserById, updateUserById, fetchRolesData } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
+import { Select, type SelectOption } from "@/components/ui/select";
+import { Role } from "@/lib/types/roles";
 
 export function UpdateUserModal({
   open,
@@ -28,8 +30,27 @@ export function UpdateUserModal({
     role_id: 1,
   });
   const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState<SelectOption[]>([]);
   const { session } = useSession();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!session?.token || !open) return
+    const loadRoles = async () => {
+      try {
+        const res = await fetchRolesData(session.token)
+        const opts = res.map((r: Role) => ({ value: String(r.id), label: r.role_name }))
+        setRoles(opts)
+      } catch (err) {
+        toast({
+          variant: "danger",
+          title: "Failed to load roles",
+          description: err instanceof Error ? err.message : "Unknown error",
+        })
+      }
+    }
+    loadRoles()
+  }, [session?.token, open, toast])
 
   // Prefill form when modal opens or user changes
   useEffect(() => {
@@ -107,12 +128,14 @@ export function UpdateUserModal({
           <CardContent className="space-y-4">
             <Input
               name="firstname"
+              label="First Name"
               placeholder="First Name"
               value={form.firstname}
               onChange={handleChange}
             />
             <Input
               name="lastname"
+              label="Last Name"
               placeholder="Last Name"
               value={form.lastname}
               onChange={handleChange}
@@ -120,18 +143,17 @@ export function UpdateUserModal({
             <Input
               name="email"
               type="email"
+              label="Email"
               placeholder="Email"
               value={form.email}
               onChange={handleChange}
             />
-            <Input
-              name="role_id"
-              type="number"
-              placeholder="Role ID"
-              value={form.role_id}
-              onChange={handleChange}
-              min={1}
-              step={1} 
+            <Select
+              label="Role"
+              options={roles}
+              value={String(form.role_id)}
+              onChange={(v) => setForm({ ...form, role_id: Number(v) })}
+              placeholder="Select a role"
             />
           </CardContent>
           <CardFooter className="justify-end space-x-2">

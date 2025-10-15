@@ -76,7 +76,7 @@ export default function EmployeesPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push(`/employees/${row.original.id}`)}>
+            <DropdownMenuItem onClick={() => router.push(`/personnel/employees/${row.original.id}`)}>
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -133,7 +133,7 @@ export default function EmployeesPage() {
           <div
             key={employee.id}
             className="border border-[hsl(var(--border))] rounded-lg p-4 flex items-center justify-between hover:bg-[hsl(var(--foreground))]/5 cursor-pointer"
-            onClick={() => router.push(`/inventory/employees/${employee.id}`)}
+            onClick={() => router.push(`/personnel/employees/${employee.id}`)}
           >
             <div className="flex items-center gap-4">
               <span className={`h-2 w-2 rounded-full ${employee.is_active ? "bg-green-500" : "bg-red-500"}`} />
@@ -150,7 +150,7 @@ export default function EmployeesPage() {
           <div
             key={employee.id}
             className="border border-[hsl(var(--border))] rounded-lg p-4 flex flex-col justify-between gap-4 bg-card hover:bg-[hsl(var(--foreground))]/5 cursor-pointer"
-            onClick={() => router.push(`/inventory/employees/${employee.id}`)}
+            onClick={() => router.push(`/personnel/employees/${employee.id}`)}
           >
             <div>
               <div className="flex items-center gap-2">
