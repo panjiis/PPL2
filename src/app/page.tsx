@@ -7,7 +7,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { Select, type SelectOption } from "@/components/ui/select";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { fetchWarehouses } from "@/lib/utils/api";
-import { type Warehouse } from "@/lib/types/warehouses";
+import { type Warehouse } from "@/lib/types/inventory/warehouses";
 import { mockApi, inventoryOverview } from "@/lib/data/mock-data";
 import {
   InventoryWidget,
@@ -169,7 +169,7 @@ export default function Home() {
           className="w-[180px] md:ml-auto"
           options={timeRangeOptions}
           value={timeRange}
-          onChange={(selectedValue) => setTimeRange(selectedValue)}
+          onChange={(selectedValue) => setTimeRange(selectedValue ?? "today")}
         />
       </div>
 

@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import type { User } from "@/lib/types/users";
-import { createUser, fetchRolesData, fetchUserById } from "@/lib/utils/api";
+import type { User } from "@/lib/types/user/users";
+import { createUser, fetchRoles, fetchUserById } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
-import { Role } from "@/lib/types/roles";
+import { Role } from "@/lib/types/user/roles";
 import { Select, SelectOption } from "@/components/ui/select";
 
 export function CreateUserModal({
@@ -99,7 +99,7 @@ export function CreateUserModal({
     if (!session?.token || !open) return
     const loadRoles = async () => {
       try {
-        const res = await fetchRolesData(session.token)
+        const res = await fetchRoles(session.token)
         const opts = res.map((r: Role) => ({ value: String(r.id), label: r.role_name }))
         setRoles(opts)
       } catch (err) {

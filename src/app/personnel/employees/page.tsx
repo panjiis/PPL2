@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchEmployees } from "@/lib/utils/api";
-import { Employee } from "@/lib/types/employees";
+import { Employee } from "@/lib/types/user/employees";
 import { useSession } from "@/lib/context/session";
 import { Button } from "@/components/ui/button";
 import { CreateEmployeeModal } from "@/components/users/create-employee-modal";

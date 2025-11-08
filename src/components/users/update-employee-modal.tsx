@@ -7,7 +7,7 @@ import { Modal } from "@/components/ui/modal";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { updateEmployee } from "@/lib/utils/api";
-import type { CommissionType, Employee } from "@/lib/types/employees";
+import type { CommissionType, Employee } from "@/lib/types/user/employees";
 import { useSession } from "@/lib/context/session";
 import { Select, type SelectOption } from "../ui/select";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
@@ -92,7 +92,7 @@ export function UpdateEmployeeModal({
                 onChange={handlePhoneChange}
                 placeholder="+XX XXX XXXX XXXX"
             />
-            <Input label="Email" name="email" placeholder="Email" value={form.email || ""} onChange={handleChange} />
+            <Input label="Email" name="email" placeholder="Email" type="email" value={form.email || ""} onChange={handleChange} />
             <Input label="Address" name="address" placeholder="Address" value={form.address || ""} onChange={handleChange} />
             <Input label="Hire Date" name="hire_date" type="date" placeholder="Hire Date" value={form.hire_date || ""} onChange={handleChange} />
             <Input label="Base Salary" name="base_salary" placeholder="Base Salary" value={form.base_salary || ""} onChange={handleChange} />

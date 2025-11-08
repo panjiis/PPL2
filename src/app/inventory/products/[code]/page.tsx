@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useSession } from "@/lib/context/session";
 import { fetchProductByCode } from "@/lib/utils/api";
-import type { Product } from "@/lib/types/products";
+import type { Product } from "@/lib/types/inventory/products";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";

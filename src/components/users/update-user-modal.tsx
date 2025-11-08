@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import type { User } from "@/lib/types/users";
-import { fetchUserById, updateUserById, fetchRolesData } from "@/lib/utils/api";
+import type { User } from "@/lib/types/user/users";
+import { fetchUserById, updateUserById, fetchRoles } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
 import { Select, type SelectOption } from "@/components/ui/select";
-import { Role } from "@/lib/types/roles";
+import { Role } from "@/lib/types/user/roles";
 
 export function UpdateUserModal({
   open,
@@ -38,7 +38,7 @@ export function UpdateUserModal({
     if (!session?.token || !open) return
     const loadRoles = async () => {
       try {
-        const res = await fetchRolesData(session.token)
+        const res = await fetchRoles(session.token)
         const opts = res.map((r: Role) => ({ value: String(r.id), label: r.role_name }))
         setRoles(opts)
       } catch (err) {
@@ -89,6 +89,7 @@ export function UpdateUserModal({
     setLoading(true);
     try {
       // Update the user
+      console.log("Updating user with data:", form);
       await updateUserById(session.token, user.id, {
         ...form,
         role_id: Number(form.role_id),
@@ -132,6 +133,7 @@ export function UpdateUserModal({
               placeholder="First Name"
               value={form.firstname}
               onChange={handleChange}
+              required
             />
             <Input
               name="lastname"
@@ -139,6 +141,7 @@ export function UpdateUserModal({
               placeholder="Last Name"
               value={form.lastname}
               onChange={handleChange}
+              required
             />
             <Input
               name="email"

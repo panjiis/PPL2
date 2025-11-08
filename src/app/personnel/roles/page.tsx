@@ -2,25 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/context/session";
-import { fetchRolesData } from "@/lib/utils/api";
-import { Role } from "@/lib/types/roles";
+import { fetchRoles } from "@/lib/utils/api";
+import { Role } from "@/lib/types/user/roles";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { MoreHorizontal, PlusIcon } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { DataView } from "@/components/ui/data-view";
 import { CreateRoleModal } from "@/components/users/create-role-modal";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown";
+import { UpdateRoleModal } from "@/components/users/update-role-modal";
 
 export default function RolesPage() {
   const { session, isLoading } = useSession();
   const [roles, setRoles] = useState<Role[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading || !session?.token) return;
-    fetchRolesData(session.token)
+    fetchRoles(session.token)
       .then(setRoles)
       .catch(console.error);
   }, [session, isLoading]);
@@ -29,11 +33,41 @@ export default function RolesPage() {
     setRoles((prev) => [...prev, newRole]);
   };
 
+  const handleRoleUpdated = (newRole: Role) => {
+    setRoles((prev) => [...prev, newRole]);
+  };
+
   const roleColumns: ColumnDef<Role>[] = [
     { accessorKey: "id", header: "ID" },
     { accessorKey: "role_name", header: "Name" },
     { accessorKey: "access_level", header: "Access Level" },
     { accessorKey: "permissions", header: "Permissions" },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => router.push(`/personnel/roles/${row.original.id}`)}>
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setEditingRole(row.original);
+                setEditModalOpen(true);
+              }}
+            >
+              Edit Role
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
   ];
 
   if (isLoading) return null;
@@ -46,6 +80,13 @@ export default function RolesPage() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onCreated={handleRoleCreated}
+      />
+
+      <UpdateRoleModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onUpdated={handleRoleUpdated}
+        role={editingRole}
       />
 
       <div className="flex items-center justify-between w-full mt-8 md:mt-16 mb-10">

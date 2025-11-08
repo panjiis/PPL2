@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import type { Warehouse } from "@/lib/types/warehouses";
-import { createWarehouse, fetchWarehouseByCode } from "@/lib/utils/api";
+import type { Warehouse } from "@/lib/types/inventory/warehouses";
+import { createWarehouse, fetchUsers, fetchWarehouseByCode } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
+import { Select, SelectOption } from "../ui/select";
+import { User } from "@/lib/types/user/users";
 
 export function CreateWarehouseModal({
   open,
@@ -26,8 +28,27 @@ export function CreateWarehouseModal({
     manager_id: 1,
   });
   const [loading, setLoading] = useState(false);
+  const [managers, setManagers] = useState<SelectOption[]>([]);
   const { session } = useSession();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!session?.token || !open) return
+    const loadManagers = async () => {
+      try {
+        const res = await fetchUsers(session.token)
+        const opts = res.map((r: User) => ({ value: String(r.id), label: r.firstname + " " + r.lastname }))
+        setManagers(opts)
+      } catch (err) {
+        toast({
+          variant: "danger",
+          title: "Failed to load managers",
+          description: err instanceof Error ? err.message : "Unknown error",
+        })
+      }
+    }
+    loadManagers()
+  }, [session?.token, open, toast])
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value: string | number = e.target.value;
@@ -119,15 +140,13 @@ export function CreateWarehouseModal({
               onChange={handleChange}
               required
             />
-            <Input
-              label="Manager ID"
-              name="manager_id"
-              type="number"
-              placeholder="Manager ID"
-              value={form.manager_id}
-              onChange={handleChange}
-              required
-              min={1}
+            <Select
+              label="Manager"
+              options={managers}
+              value={String(form.manager_id)}
+              onChange={(v) => setForm({ ...form, manager_id: Number(v) })}
+              placeholder="Select a manager"
+              searchable
             />
           </CardContent>
           <CardFooter className="justify-end space-x-2">

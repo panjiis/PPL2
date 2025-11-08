@@ -7,6 +7,7 @@ export const WarehouseSchema = z.object({
   warehouse_name: z.string(),
   location: z.string().optional(),
   manager_id: z.number().optional(),
+  manager_name: z.string().optional(),
   is_active: z.boolean(),
   created_at: TimestampSchema,
   updated_at: TimestampSchema,

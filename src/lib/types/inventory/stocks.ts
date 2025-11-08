@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TimestampSchema } from "@/lib/types/timestamp";
-import { WarehouseSchema } from "@/lib/types/warehouses";
-import { ProductSchema } from "@/lib/types/products";
+import { WarehouseSchema } from "@/lib/types/inventory/warehouses";
+import { ProductSchema } from "@/lib/types/inventory/products";
 import { PaginationRequestSchema, PaginationResponseSchema } from "@/lib/types/pagination";
 import { DateRangeSchema } from "@/lib/types/date-range";
 
@@ -18,14 +18,22 @@ export const MovementTypeMap: Record<MovementType, number> = {
   TRANSFER: 4,
 };
 
-export const ReferenceTypeSchema = z.enum(["PURCHASE_ORDER", "SALES_ORDER", "MANUAL", "TRANSFER"]);
+export const ReferenceTypeSchema = z.enum(["UNSPECIFIED", "PURCHASE", "SALE", "ADJUSTMENT", "TRANSFER", "RETURN"]);
 export type ReferenceType = z.infer<typeof ReferenceTypeSchema>;
+
+export const ReferenceTypeMap: Record<ReferenceType, number> = {
+  UNSPECIFIED: 0,
+  PURCHASE: 1,
+  SALE: 2,
+  ADJUSTMENT: 3,
+  TRANSFER: 4,
+  RETURN: 5,
+};
 
 // --- STOCK ---
 
 export const StockSchema = z.object({
-  id: z.number(),
-  product_id: z.number(),
+  product_code: z.string(),
   warehouse_id: z.number(),
   available_quantity: z.number(),
   reserved_quantity: z.number(),
@@ -39,11 +47,24 @@ export const StockSchema = z.object({
 
 export type Stock = z.infer<typeof StockSchema>;
 
+export type AggregatedStock = {
+  product_code: string;
+  product_name: string;
+  total_available: number;
+  total_reserved: number;
+  last_restock_date?: string;
+  warehouses: {
+    name: string;
+    available: number;
+    reserved: number;
+  }[];
+};
+
 // --- STOCK MOVEMENT ---
 
 export const StockMovementSchema = z.object({
   id: z.number(),
-  product_id: z.number(),
+  product_code: z.string(),
   warehouse_id: z.number(),
   movement_type: MovementTypeSchema,
   quantity: z.number(),
@@ -52,6 +73,7 @@ export const StockMovementSchema = z.object({
   reference_id: z.string().optional(),
   notes: z.string().optional(),
   created_by: z.number(),
+  manager_name: z.string().optional(),
   created_at: TimestampSchema,
 });
 
@@ -72,7 +94,7 @@ export const CheckStockResponseSchema = z.object({
 });
 
 export const ReserveStockRequestSchema = z.object({
-  product_id: z.number(),
+  product_code: z.string(),
   warehouse_id: z.number(),
   quantity: z.number(),
   reference_id: z.string(),
@@ -80,13 +102,13 @@ export const ReserveStockRequestSchema = z.object({
 });
 
 export const ReserveStockResponseSchema = z.object({
-  updated_stock: StockSchema,
+  data: StockSchema,
   success: z.boolean(),
   message: z.string().optional(),
 });
 
 export const ReleaseStockRequestSchema = z.object({
-  product_id: z.number(),
+  product_code: z.string(),
   warehouse_id: z.number(),
   quantity: z.number(),
   reference_id: z.string(),
@@ -94,13 +116,32 @@ export const ReleaseStockRequestSchema = z.object({
 });
 
 export const ReleaseStockResponseSchema = z.object({
-  updated_stock: StockSchema,
+  data: StockSchema,
+  success: z.boolean(),
+  message: z.string().optional(),
+});
+
+export const TransferStockRequestSchema = z.object({
+  product_code: z.string(),
+  from_warehouse_id: z.number(),
+  to_warehouse_id: z.number(),
+  quantity: z.number(),
+  notes: z.string().optional,
+  transferred_by: z.number(),
+});
+
+export const TransferStockResponseSchema = z.object({
+  data: z.object({
+    source_stock: StockSchema,
+    destination_stock: StockSchema,
+    stock_movements: z.array(StockMovementSchema),
+  }),
   success: z.boolean(),
   message: z.string().optional(),
 });
 
 export const UpdateStockRequestSchema = z.object({
-  product_id: z.number(),
+  product_code: z.string(),
   warehouse_id: z.number(),
   movement_type: MovementTypeSchema,
   quantity: z.number(),
@@ -112,8 +153,12 @@ export const UpdateStockRequestSchema = z.object({
 });
 
 export const UpdateStockResponseSchema = z.object({
-  stock_movement: StockMovementSchema,
-  updated_stock: StockSchema,
+  data: z.object({
+    stock_movement: StockMovementSchema,
+    updated_stock: StockSchema,
+  }),
+  success: z.boolean(),
+  message: z.string().optional(),
 });
 
 export const GetStockRequestSchema = z.object({
@@ -156,6 +201,12 @@ export const StockResponseSchema = z.object({
   data: StockSchema,
 });
 
+export const StockMovementResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: StockMovementSchema,
+});
+
 export const StocksResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
@@ -173,6 +224,8 @@ export type ReserveStockRequest = z.infer<typeof ReserveStockRequestSchema>;
 export type ReserveStockResponse = z.infer<typeof ReserveStockResponseSchema>;
 export type ReleaseStockRequest = z.infer<typeof ReleaseStockRequestSchema>;
 export type ReleaseStockResponse = z.infer<typeof ReleaseStockResponseSchema>;
+export type TransferStockRequest = z.infer<typeof TransferStockRequestSchema>;
+export type TransferStockResponse = z.infer<typeof TransferStockResponseSchema>;
 export type UpdateStockRequest = z.infer<typeof UpdateStockRequestSchema>;
 export type UpdateStockResponse = z.infer<typeof UpdateStockResponseSchema>;
 export type GetStockRequest = z.infer<typeof GetStockRequestSchema>;
@@ -181,5 +234,6 @@ export type ListLowStockRequest = z.infer<typeof ListLowStockRequestSchema>;
 export type ListLowStockResponse = z.infer<typeof ListLowStockResponseSchema>;
 export type ListStockMovementsRequest = z.infer<typeof ListStockMovementsRequestSchema>;
 export type ListStockMovementsResponse = z.infer<typeof ListStockMovementsResponseSchema>;
+export type StockMovementResponse = z.infer<typeof StockMovementResponseSchema>;
 export type StockResponse = z.infer<typeof StockResponseSchema>;
 export type StocksResponse = z.infer<typeof StocksResponseSchema>;

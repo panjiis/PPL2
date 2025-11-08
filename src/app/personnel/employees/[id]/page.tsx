@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useSession } from "@/lib/context/session";
 import { fetchEmployeeById } from "@/lib/utils/api";
-import type { Employee } from "@/lib/types/employees";
+import type { Employee } from "@/lib/types/user/employees";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";

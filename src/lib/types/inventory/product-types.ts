@@ -4,6 +4,7 @@ import { TimestampSchema } from "@/lib/types/timestamp";
 export const ProductTypeSchema = z.object({
   id: z.number(),
   product_type_name: z.string(),
+  product_type_code: z.string(),
   description: z.string().optional(),
   created_at: TimestampSchema,
   updated_at: TimestampSchema,

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { ProductTypeSchema } from "@/lib/types/product-types";
-import { SupplierSchema } from "@/lib/types/suppliers";
-import { StockSchema } from "@/lib/types/stocks";
+import { ProductTypeSchema } from "@/lib/types/inventory/product-types";
+import { SupplierSchema } from "@/lib/types/inventory/suppliers";
+import { StockSchema } from "@/lib/types/inventory/stocks";
 import { TimestampSchema } from "@/lib/types/timestamp";
 
 export type Product = {

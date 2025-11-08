@@ -15,7 +15,7 @@ export function Toaster() {
     <div
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
-      className="fixed top-0 left-1/2 -translate-x-1/2 z-50 p-4 w-full max-w-sm pointer-events-none"
+      className="fixed top-0 left-1/2 -translate-x-1/2 z-200 p-4 w-full max-w-sm pointer-events-none"
     >
       <div className="flex flex-col-reverse gap-2 pointer-events-auto">
         <AnimatePresence>

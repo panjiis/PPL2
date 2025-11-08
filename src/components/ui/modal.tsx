@@ -29,7 +29,7 @@ export function Modal({
         <>
           <motion.div
             key="backdrop"
-            className="absolute inset-0 bg-black z-40"
+            className="fixed inset-0 bg-black z-110"
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
@@ -37,7 +37,7 @@ export function Modal({
             transition={{ duration: 0.2 }}
             onClick={onClose}
           />
-          <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none overflow-y-auto overflow-x-hidden p-4">
+          <div className="fixed inset-0 flex items-center justify-center z-111 pointer-events-none overflow-y-auto overflow-x-hidden p-4">
             <motion.div
               key="modal"
               className="pointer-events-auto my-auto"

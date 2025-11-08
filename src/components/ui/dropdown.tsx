@@ -8,6 +8,35 @@ import React, {
   createContext,
 } from "react";
 import { cn } from "@/lib/utils/cn";
+import ReactDOM from "react-dom";
+
+// --- NEW: Ref Merging Utilities ---
+type Ref<T> = React.RefObject<T> | React.MutableRefObject<T> | React.ForwardedRef<T>;
+
+function setRef<T>(ref: Ref<T>, value: T) {
+  if (typeof ref === 'function') {
+    ref(value);
+  } else if (ref && 'current' in ref) {
+    (ref as React.MutableRefObject<T>).current = value;
+  }
+}
+
+function useMergeRefs<T>(...refs: (Ref<T> | undefined)[]) {
+  return React.useMemo(() => {
+    if (refs.every((ref) => ref == null)) {
+      return null;
+    }
+    return (node: T) => {
+      refs.forEach((ref) => {
+        if (ref) {
+          setRef(ref, node);
+        }
+      });
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, refs);
+}
+
 
 // --- Context ---
 interface DropdownMenuContextType {
@@ -66,17 +95,21 @@ const DropdownMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   );
 };
 
-// --- Trigger ---
+// --- Trigger (UPDATED) ---
 interface DropdownMenuTriggerProps {
   children: React.ReactNode;
   asChild?: boolean;
 }
 
-const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({ 
-  children, 
-  asChild 
+const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
+  children,
+  asChild,
 }) => {
   const { isOpen, setIsOpen, triggerRef } = useDropdownMenu();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const childRef = (children as any)?.ref;
+  const mergedRef = useMergeRefs(triggerRef, childRef);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -84,20 +117,24 @@ const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
   };
 
   if (asChild && React.isValidElement(children)) {
-    const child = children as React.ReactElement<{
-      onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-    }>;
     
+    const childProps = children.props as {
+      onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+    };
+
     const combinedOnClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      child.props.onClick?.(e);
+      if (typeof childProps.onClick === "function") {
+        childProps.onClick(e);
+      }
       handleClick(e);
     };
 
-    return React.cloneElement(child, {
+    return React.cloneElement(children, {
+      ref: mergedRef,
       onClick: combinedOnClick,
       "aria-haspopup": "true",
       "aria-expanded": isOpen,
-    } as Partial<typeof child.props>);
+    } as Partial<typeof children.props>);
   }
 
   return (
@@ -114,19 +151,26 @@ const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
   );
 };
 
-// --- Content ---
+// --- Content (UPDATED) ---
 interface DropdownMenuContentProps {
   children: React.ReactNode;
   className?: string;
   align?: "start" | "end" | "center";
 }
 
-const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({ 
-  children, 
-  className, 
-  align = "start" 
+const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
+  children,
+  className,
+  align = "start",
 }) => {
   const { isOpen, setIsOpen, triggerRef, contentRef } = useDropdownMenu();
+  const [isMounted, setIsMounted] = useState(false);
+  const [coords, setCoords] = useState<{
+    top: number;
+    left?: number;
+    right?: number;
+    minWidth: number;
+  } | null>(null);
 
   useOnClickOutside(triggerRef, contentRef, () => setIsOpen(false));
 
@@ -138,23 +182,84 @@ const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [setIsOpen]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-  return (
+  useEffect(() => {
+    if (!isOpen || !triggerRef.current) {
+      // NEW: Reset coords when closing
+      setCoords(null);
+      return;
+    }
+
+    const calculatePosition = () => {
+      if (!triggerRef.current) return;
+
+      const rect = triggerRef.current.getBoundingClientRect();
+      const scrollY = window.scrollY;
+      const scrollX = window.scrollX;
+      const newTop = rect.bottom + scrollY + 8; // 8px for mt-2
+      const newMinWidth = rect.width;
+
+      if (align === "end") {
+        setCoords({
+          top: newTop,
+          right: window.innerWidth - rect.right - scrollX,
+          minWidth: newMinWidth,
+        });
+      } else {
+        setCoords({
+          top: newTop,
+          left: rect.left + scrollX,
+          minWidth: newMinWidth,
+        });
+      }
+    };
+
+    calculatePosition();
+
+    window.addEventListener("resize", calculatePosition);
+    document.addEventListener("scroll", calculatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", calculatePosition);
+      document.removeEventListener("scroll", calculatePosition, true);
+    };
+  }, [isOpen, triggerRef, align]);
+
+  // Do not render on server or if closed
+  if (!isOpen || !isMounted) return null;
+  
+  // NEW: Do not render until coords are calculated
+  // This prevents flashing at (0,0)
+  if (!coords) return null;
+
+  const contentElement = (
     <div
       ref={contentRef}
       role="menu"
       data-align={align}
+      style={{
+        position: "absolute",
+        top: `${coords.top}px`,
+        left: coords.left !== undefined ? `${coords.left}px` : "auto",
+        right: coords.right !== undefined ? `${coords.right}px` : "auto",
+        minWidth: `${coords.minWidth}px`,
+      }}
       className={cn(
-        "absolute z-50 mt-2 min-w-[8rem] rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-1 shadow-md outline-none",
-        align === "end" ? "right-0 origin-top-right" : "left-0 origin-top-left",
+        "z-50 min-w-[8rem] rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-1 shadow-md outline-none",
+        align === "end" ? "origin-top-right" : "origin-top-left",
         className
       )}
     >
       {children}
     </div>
   );
+
+  return ReactDOM.createPortal(contentElement, document.body);
 };
+
 
 // --- Item ---
 interface DropdownMenuItemProps {

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "@/lib/context/session";
 import { useRouter } from "next/navigation";
 import { fetchSuppliers } from "@/lib/utils/api";
-import { Supplier } from "@/lib/types/suppliers";
+import { Supplier } from "@/lib/types/inventory/suppliers";
 import { CreateSupplierModal } from "@/components/inventory/create-supplier-modal";
 import { UpdateSupplierModal } from "@/components/inventory/update-supplier-modal";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -96,7 +96,7 @@ export default function SuppliersPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push(`/users/${row.original.id}`)}>
+            <DropdownMenuItem onClick={() => router.push(`/inventory/suppliers/${row.original.id}`)}>
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem

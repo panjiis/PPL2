@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "@/lib/context/session";
 import { useRouter } from "next/navigation";
 import { fetchWarehouses } from "@/lib/utils/api";
-import { Warehouse } from "@/lib/types/warehouses";
+import { Warehouse } from "@/lib/types/inventory/warehouses";
 import { CreateWarehouseModal } from "@/components/inventory/create-warehouse-modal";
 import { UpdateWarehouseModal } from "@/components/inventory/update-warehouse-modal";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -34,31 +34,44 @@ export default function WarehousesPage() {
     })();
   }, [session, isLoading]);
 
-  const handleWarehouseCreated = (newWarehouse: Warehouse) => {
-    setWarehouses((prev) => [...prev, newWarehouse]);
+  const refreshWarehouses = async () => {
+      if (!session) return;
+      const refreshed = await fetchWarehouses(session.token);
+      setWarehouses(refreshed);
+    };
+
+  const handleWarehouseCreated = async () => {
+    await refreshWarehouses();
   };
 
-  const handleWarehouseUpdated = (updated: Warehouse) => {
-    setWarehouses((prev) =>
-      prev.map((w) => (w.id === updated.id ? updated : w))
-    );
+  const handleWarehouseUpdated = async () => {
+    await refreshWarehouses();
     setEditingWarehouse(null);
   };
 
   const warehouseColumns: ColumnDef<Warehouse>[] = [
-    {
-      accessorKey: "id",
-      header: "ID",
-      meta: { type: "number" as const },
-    },
+    // DEPRECATED
+    // {
+    //   accessorKey: "id",
+    //   header: "ID",
+    //   meta: { type: "number" as const },
+    // },
     {
       accessorKey: "warehouse_code",
       header: "Code",
       meta: { type: "string" as const },
+      cell: ({ getValue }) => (
+        <span className="font-mono">{getValue<string>()}</span>
+      ),
     },
     {
       accessorKey: "warehouse_name",
-      header: "Name",
+      header: "Warehouse Name",
+      meta: { type: "string" as const },
+    },
+    {
+      accessorKey: "manager_name",
+      header: "Manager Name",
       meta: { type: "string" as const },
     },
     {
@@ -85,6 +98,14 @@ export default function WarehousesPage() {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => router.push(`warehouses/${row.original.warehouse_code}`)}>
               View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setEditingWarehouse(row.original);
+                setUpdateModalOpen(true);
+              }}
+            >
+              Edit Warehouse
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -131,7 +152,7 @@ export default function WarehousesPage() {
         onCreate={() => setCreateModalOpen(true)}
         renderListItem={(warehouse) => (
           <div
-            key={warehouse.id}
+            key={warehouse.warehouse_code}
             className="border border-[hsl(var(--border))] rounded-lg p-4 flex items-center justify-between hover:bg-[hsl(var(--foreground))]/5 cursor-pointer"
             onClick={() => router.push(`/inventory/warehouses/${warehouse.warehouse_code}`)}
           >
@@ -146,7 +167,7 @@ export default function WarehousesPage() {
         )}
         renderGridItem={(warehouse) => (
           <div
-            key={warehouse.id}
+            key={warehouse.warehouse_code}
             className="border border-[hsl(var(--border))] rounded-lg p-4 flex flex-col justify-between gap-4 bg-card hover:bg-[hsl(var(--foreground))]/5 cursor-pointer"
             onClick={() => router.push(`/inventory/warehouses/${warehouse.warehouse_code}`)}
           >

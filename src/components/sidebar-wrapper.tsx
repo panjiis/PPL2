@@ -5,7 +5,7 @@ import { useState, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sidebar, SidebarHeader, SidebarContent, SidebarItem, SidebarFooter } from "@/components/ui/sidebar";
-import { Menu, Home, Settings, LogOut, UsersIcon, PaletteIcon, IdCardLanyard, IdCard, ShieldUserIcon, ArchiveIcon, PackageIcon, WarehouseIcon, BoxesIcon, HandshakeIcon, TagsIcon, Code2Icon, ConstructionIcon } from "lucide-react";
+import { Menu, Home, Settings, LogOut, UsersIcon, PaletteIcon, IdCardLanyard, IdCard, ShieldUserIcon, ArchiveIcon, PackageIcon, WarehouseIcon, BoxesIcon, HandshakeIcon, TagsIcon, Code2Icon, ConstructionIcon, StoreIcon, TicketPercentIcon, ShoppingCartIcon, CreditCardIcon, ShapesIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { useSession } from "@/lib/context/session";
 
@@ -21,6 +21,8 @@ export function SidebarWrapper({ children }: { children: ReactNode }) {
   const [visible, setVisible] = useState(false);
   const { session, signOut } = useSession();
   const pathname = usePathname();
+
+  const isLogin = pathname === "/login";
 
   const ROUTES: Route[] = [
     { label: "Home", path: "/", icon: <Home /> },
@@ -47,6 +49,18 @@ export function SidebarWrapper({ children }: { children: ReactNode }) {
       ],
     },
     {
+      label: "POS",
+      path: "/pos",
+      icon: <StoreIcon />,
+      children: [
+        { label: "Discounts", path: "/pos/discounts", icon: <TicketPercentIcon /> },
+        { label: "Orders", path: "/pos/orders", icon: <ShoppingCartIcon /> },
+        { label: "Payment Types", path: "/pos/payment-types", icon: <CreditCardIcon /> },
+        { label: "Products", path: "/pos/products", icon: <PackageIcon /> },
+        { label: "Product Groups", path: "/pos/product-groups", icon: <ShapesIcon /> },
+      ],
+    },
+    {
       label: "Settings",
       path: "/settings",
       icon: <Settings />,
@@ -54,14 +68,14 @@ export function SidebarWrapper({ children }: { children: ReactNode }) {
         { label: "Appearance", path: "/settings/appearance/", icon: <PaletteIcon /> }
       ],
     },
-    {
-      label: "Development",
-      path: "/development",
-      icon: <Code2Icon />,
-      children: [
-        { label: "Playground", path: "/playground", icon: <ConstructionIcon /> }
-      ],
-    },
+    // {
+    //   label: "Development",
+    //   path: "/development",
+    //   icon: <Code2Icon />,
+    //   children: [
+    //     { label: "Playground", path: "/playground", icon: <ConstructionIcon /> }
+    //   ],
+    // },
   ];
 
     const renderRoute = (route: Route, depth = 0) => {
@@ -94,7 +108,7 @@ export function SidebarWrapper({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       {session && (
         <Sidebar
-          className={`fixed top-0 left-0 h-full z-1000 w-fit bg-[hsl(var(--background))] transform transition-transform duration-300 ease-in-out
+          className={`fixed top-0 left-0 h-full z-100 w-fit bg-[hsl(var(--background))] transform transition-transform duration-300 ease-in-out
             ${visible ? "translate-x-0" : "-translate-x-full"} 
             md:translate-x-0 md:static md:flex-shrink-0
           `}
@@ -137,7 +151,11 @@ export function SidebarWrapper({ children }: { children: ReactNode }) {
       )}
 
       {/* Main content */}
-      <main className="relative w-full p-4 md:p-8 pt-18 flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300">
+      <main
+        className={`relative w-full flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300
+          
+          ${/* janky login padding removal for mobile layout */ isLogin ? "p-0" : "p-4 md:p-8 pt-18"}`}
+      >
         {children}
       </main>
     </div>

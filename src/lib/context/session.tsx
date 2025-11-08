@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Session } from "@/lib/types/auth";
 
 type SessionContextType = {
@@ -14,6 +15,8 @@ const SessionContext = createContext<SessionContextType | undefined>(undefined);
 export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSessionState] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     try {
@@ -36,16 +39,29 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     else localStorage.removeItem("session");
   };
 
+  // Auto logout effect
   useEffect(() => {
     if (!session) return;
-    const timeout = session.expiresAt - Date.now();
-    if (timeout > 0) {
-      const timer = setTimeout(() => setSession(null), timeout);
-      return () => clearTimeout(timer);
-    } else setSession(null);
-  }, [session]);
 
-  const signOut = () => setSession(null);
+    const timeout = session.expiresAt - Date.now();
+    if (timeout <= 0) {
+      setSession(null);
+      if (pathname !== "/login") router.push("/login");
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setSession(null);
+      if (pathname !== "/login") router.push("/login");
+    }, timeout);
+
+    return () => clearTimeout(timer);
+  }, [session, pathname, router]);
+
+  const signOut = () => {
+    setSession(null);
+    if (pathname !== "/login") router.push("/login");
+  };
 
   return (
     <SessionContext.Provider value={{ session, setSession, isLoading, signOut }}>

@@ -39,7 +39,7 @@ export const SidebarContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex-1 flex flex-col p-2 space-y-1", className)} {...props} />
+  <div ref={ref} className={cn("flex-1 flex flex-col p-2 space-y-1 overflow-y-auto", className)} {...props} />
 ));
 SidebarContent.displayName = "SidebarContent";
 

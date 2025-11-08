@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import type { Warehouse } from "@/lib/types/warehouses";
-import { fetchWarehouseByCode, updateWarehouseByCode } from "@/lib/utils/api";
+import type { Warehouse } from "@/lib/types/inventory/warehouses";
+import { fetchUsers, fetchWarehouseByCode, updateWarehouseByCode } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
+import { Select, SelectOption } from "../ui/select";
+import { User } from "@/lib/types/user/users";
 
 export function UpdateWarehouseModal({
   open,
@@ -22,12 +24,12 @@ export function UpdateWarehouseModal({
   warehouse: Warehouse | null;
 }) {
   const [form, setForm] = useState({
-    warehouse_code: "",
     warehouse_name: "",
     location: "",
     manager_id: 1,
   });
   const [loading, setLoading] = useState(false);
+  const [managers, setManagers] = useState<SelectOption[]>([]);
   const { session } = useSession();
   const { toast } = useToast();
 
@@ -35,13 +37,30 @@ export function UpdateWarehouseModal({
   useEffect(() => {
     if (warehouse) {
       setForm({
-        warehouse_code: warehouse.warehouse_code || "",
         warehouse_name: warehouse.warehouse_name || "",
         location: warehouse.location || "",
         manager_id: warehouse.manager_id || 1,
       });
     }
   }, [warehouse, open]);
+
+  useEffect(() => {
+      if (!session?.token || !open) return
+      const loadManagers = async () => {
+        try {
+          const res = await fetchUsers(session.token)
+          const opts = res.map((r: User) => ({ value: String(r.id), label: r.firstname + " " + r.lastname }))
+          setManagers(opts)
+        } catch (err) {
+          toast({
+            variant: "danger",
+            title: "Failed to load managers",
+            description: err instanceof Error ? err.message : "Unknown error",
+          })
+        }
+      }
+      loadManagers()
+    }, [session?.token, open, toast])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value: string | number = e.target.value;
@@ -103,14 +122,6 @@ export function UpdateWarehouseModal({
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <Input
-              label="Warehouse Code"
-              name="warehouse_code"
-              placeholder="Warehouse Code"
-              value={form.warehouse_code}
-              onChange={handleChange}
-              required
-            />
-            <Input
               label="Warehouse Name"
               name="warehouse_name"
               placeholder="Warehouse Name"
@@ -126,15 +137,13 @@ export function UpdateWarehouseModal({
               onChange={handleChange}
               required
             />
-            <Input
-              label="Manager ID"
-              name="manager_id"
-              type="number"
-              placeholder="Manager ID"
-              value={form.manager_id}
-              onChange={handleChange}
-              required
-              min={1}
+            <Select
+              label="Manager"
+              options={managers}
+              value={String(form.manager_id)}
+              onChange={(v) => setForm({ ...form, manager_id: Number(v) })}
+              placeholder="Select a manager"
+              searchable
             />
           </CardContent>
           <CardFooter className="justify-end space-x-2">

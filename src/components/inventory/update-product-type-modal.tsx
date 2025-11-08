@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import type { ProductType } from "@/lib/types/product-types";
-import { fetchProductTypeById, updateProductTypeById } from "@/lib/utils/api";
+import type { ProductType } from "@/lib/types/inventory/product-types";
+import { updateProductTypeById } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
 
 export function UpdateProductTypeModal({
@@ -59,18 +59,16 @@ export function UpdateProductTypeModal({
 
     setLoading(true);
     try {
-      await updateProductTypeById(session.token, product_type.id, {
+      const updated = await updateProductTypeById(session.token, product_type.id, {
         ...form
       });
 
-      const updatedProductType = await fetchProductTypeById(session.token, product_type.id);
-
-      onUpdated(updatedProductType);
+      onUpdated(updated);
 
       toast({
         variant: "success",
         title: "Product Type Updated",
-        description: `${updatedProductType.id} ${updatedProductType.product_type_name} was updated successfully.`,
+        description: `${updated.id} ${updated.product_type_name} was updated successfully.`,
       });
 
       onClose();
@@ -90,7 +88,7 @@ export function UpdateProductTypeModal({
     <Modal open={open} onClose={onClose}>
       <Card>
         <CardHeader>
-          <CardTitle>Create Product Type</CardTitle>
+          <CardTitle>Update Product Type</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -100,6 +98,7 @@ export function UpdateProductTypeModal({
               placeholder="Product Type Name"
               value={form.product_type_name}
               onChange={handleChange}
+              required
             />
             <Input
               label="Description"
@@ -114,7 +113,7 @@ export function UpdateProductTypeModal({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create"}
+              {loading ? "Updating..." : "Update"}
             </Button>
           </CardFooter>
         </form>

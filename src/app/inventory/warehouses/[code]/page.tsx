@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useSession } from "@/lib/context/session";
 import { fetchWarehouseByCode } from "@/lib/utils/api";
-import type { Warehouse } from "@/lib/types/warehouses";
+import type { Warehouse } from "@/lib/types/inventory/warehouses";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";

@@ -5,7 +5,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { DataView } from "@/components/ui/data-view";
 import { useSession } from "@/lib/context/session";
-import { Product } from "@/lib/types/products";
+import { Product } from "@/lib/types/inventory/products";
 import { fetchProducts } from "@/lib/utils/api";
 import { MoreHorizontal, PlusIcon } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -30,25 +30,28 @@ export default function ProductPage() {
       .catch(console.error);
   }, [session, isLoading]);
 
-  const handleProductCreated = async () => {
+  const refreshProducts = async () => {
     if (!session) return;
     const refreshed = await fetchProducts(session.token);
     setProducts(refreshed);
   };
 
-  const handleProductUpdated = (updated: Product) => {
-    setProducts((prev) =>
-      prev.map((u) => (u.id === updated.id ? updated : u))
-    );
+  const handleProductCreated = async () => {
+    await refreshProducts();
+  };
+
+  const handleProductUpdated = async () => {
+    await refreshProducts();
     setEditingProduct(null);
   };
 
   const productColumns: ColumnDef<Product>[] = [
-    {
-      accessorKey: "id",
-      header: "ID",
-      meta: { type: "number" as const },
-    },
+    // DEPRECATED
+    // {
+    //   accessorKey: "id",
+    //   header: "ID",
+    //   meta: { type: "number" as const },
+    // },
     { 
       accessorKey: "product_code",
       header: "Product Code",
@@ -96,12 +99,6 @@ export default function ProductPage() {
       accessorKey: "max_stock_level",
       header: "Max Stock Level",
       meta: { type: "number" as const },
-    },
-    {
-      accessorKey: "is_active",
-      header: "Active",
-      meta: { type: "string" as const },
-      cell: ({ row }) => (row.original.is_active ? "Yes" : "No"),
     },
     {
       id: "actions",

@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import type { Supplier } from "@/lib/types/suppliers";
-import { fetchSupplierById, updateSupplierById } from "@/lib/utils/api";
+import type { Supplier } from "@/lib/types/inventory/suppliers";
+import { fetchSupplierById, updateSupplierByCode } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 
@@ -79,7 +79,7 @@ export function UpdateSupplierModal({
     setLoading(true);
     try {
       // Update the supplier
-      await updateSupplierById(session.token, supplier.id, {
+      await updateSupplierByCode(session.token, supplier.supplier_code, {
         ...form
       });
 

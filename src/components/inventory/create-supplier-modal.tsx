@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import type { Supplier } from "@/lib/types/suppliers";
+import type { Supplier } from "@/lib/types/inventory/suppliers";
 import { createSupplier, fetchSupplierById } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
 import { parsePhoneNumberFromString } from "libphonenumber-js";

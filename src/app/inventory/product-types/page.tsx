@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "@/lib/context/session";
 import { useRouter } from "next/navigation";
 import { fetchProductTypes } from "@/lib/utils/api";
-import { ProductType } from "@/lib/types/product-types";
+import { ProductType } from "@/lib/types/inventory/product-types";
 import { CreateProductTypeModal } from "@/components/inventory/create-product-type-modal";
 import { UpdateProductTypeModal } from "@/components/inventory/update-product-type-modal";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -34,14 +34,18 @@ export default function ProductTypesPage() {
     })();
   }, [session, isLoading]);
 
-  const handleProductTypeCreated = (newProductType: ProductType) => {
-    setProductTypes((prev) => [...prev, newProductType]);
+  const refreshProductTypes = async () => {
+    if (!session) return;
+    const refreshed = await fetchProductTypes(session.token);
+    setProductTypes(refreshed);
   };
 
-  const handleProductTypeUpdated = (updated: ProductType) => {
-    setProductTypes((prev) =>
-      prev.map((w) => (w.id === updated.id ? updated : w))
-    );
+  const handleProductTypeCreated = async () => {
+    refreshProductTypes();
+  };
+
+  const handleProductTypeUpdated = async () => {
+    refreshProductTypes();
     setEditingProductType(null);
   };
 
@@ -74,6 +78,14 @@ export default function ProductTypesPage() {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => router.push(`product-types/${row.original.id}`)}>
               View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setEditingProductType(row.original);
+                setUpdateModalOpen(true);
+              }}
+            >
+              Edit Product Type
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import type { Role } from "@/lib/types/roles";
+import type { Role } from "@/lib/types/user/roles";
 import { createRole } from "@/lib/utils/api";
 import { useSession } from "@/lib/context/session";
 

@@ -2,7 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Archive, Package, AlertCircle, DollarSign, ShoppingCart, Clock, WarehouseIcon, TrendingUp, CalendarDays, Crown, CircleX, ExternalLinkIcon } from "lucide-react";
 import { BarChart, ResponsiveContainer, XAxis, Tooltip, Bar, LineChart, CartesianGrid, YAxis, Line } from "recharts";
-import type { Warehouse } from "@/lib/types/warehouses";
+import type { Warehouse } from "@/lib/types/inventory/warehouses";
 import { useRouter } from "next/navigation";
 
 type AppRouterInstance = ReturnType<typeof useRouter>;
