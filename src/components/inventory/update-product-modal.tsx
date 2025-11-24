@@ -12,6 +12,7 @@ import { useSession } from "@/lib/context/session";
 import { Select, SelectOption } from "../ui/select";
 import { ProductType } from "@/lib/types/inventory/product-types";
 import { Supplier } from "@/lib/types/inventory/suppliers";
+import { useRouter } from "next/navigation";
 
 export function UpdateProductModal({
   open,
@@ -36,6 +37,7 @@ export function UpdateProductModal({
   const [loading, setLoading] = useState(false);
   const [productTypes, setProductTypes] = useState<SelectOption[]>([]);
   const [suppliers, setSuppliers] = useState<SelectOption[]>([]);
+  const router = useRouter();
   const { session } = useSession();
   const { toast } = useToast();
 
@@ -128,6 +130,13 @@ export function UpdateProductModal({
         variant: "success",
         title: "Product Updated",
         description: `${updatedProduct.product_name} was updated successfully.`,
+        action: {
+          label: "Add Stock",
+          onClick: () => {
+            // Navigate to stocks page with query parameter
+            router.push(`/inventory/stocks?openUpdate=true&productCode=${encodeURIComponent(updatedProduct.product_code)}`);
+          }
+        }
       });
 
       onClose();

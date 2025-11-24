@@ -9,34 +9,28 @@ import React, {
 } from "react";
 import { cn } from "@/lib/utils/cn";
 import ReactDOM from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
-// --- NEW: Ref Merging Utilities ---
-type Ref<T> = React.RefObject<T> | React.MutableRefObject<T> | React.ForwardedRef<T>;
+// --- Ref Utilities ---
+type Ref<T> =
+  | React.RefObject<T>
+  | React.MutableRefObject<T>
+  | React.ForwardedRef<T>;
 
 function setRef<T>(ref: Ref<T>, value: T) {
-  if (typeof ref === 'function') {
+  if (typeof ref === "function") {
     ref(value);
-  } else if (ref && 'current' in ref) {
+  } else if (ref && "current" in ref) {
     (ref as React.MutableRefObject<T>).current = value;
   }
 }
 
 function useMergeRefs<T>(...refs: (Ref<T> | undefined)[]) {
   return React.useMemo(() => {
-    if (refs.every((ref) => ref == null)) {
-      return null;
-    }
-    return (node: T) => {
-      refs.forEach((ref) => {
-        if (ref) {
-          setRef(ref, node);
-        }
-      });
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, refs);
+    if (refs.every((ref) => ref == null)) return null;
+    return (node: T) => refs.forEach((ref) => ref && setRef(ref, node));
+  }, [refs]);
 }
-
 
 // --- Context ---
 interface DropdownMenuContextType {
@@ -47,15 +41,14 @@ interface DropdownMenuContextType {
 }
 
 const DropdownMenuContext = createContext<DropdownMenuContextType | null>(null);
-
 const useDropdownMenu = () => {
-  const context = useContext(DropdownMenuContext);
-  if (!context)
+  const ctx = useContext(DropdownMenuContext);
+  if (!ctx)
     throw new Error("useDropdownMenu must be used within a DropdownMenu provider");
-  return context;
+  return ctx;
 };
 
-// --- Click outside hook (ignores clicks on trigger) ---
+// --- Click outside ---
 function useOnClickOutside(
   triggerRef: React.RefObject<HTMLElement | null>,
   contentRef: React.RefObject<HTMLElement | null>,
@@ -67,9 +60,8 @@ function useOnClickOutside(
       if (
         !triggerRef.current?.contains(target) &&
         !contentRef.current?.contains(target)
-      ) {
+      )
         handler();
-      }
     };
     document.addEventListener("mousedown", listener);
     document.addEventListener("touchstart", listener);
@@ -80,7 +72,7 @@ function useOnClickOutside(
   }, [triggerRef, contentRef, handler]);
 }
 
-// --- Main Dropdown ---
+// --- Main ---
 const DropdownMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -95,7 +87,7 @@ const DropdownMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   );
 };
 
-// --- Trigger (UPDATED) ---
+// --- Trigger ---
 interface DropdownMenuTriggerProps {
   children: React.ReactNode;
   asChild?: boolean;
@@ -106,7 +98,6 @@ const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
   asChild,
 }) => {
   const { isOpen, setIsOpen, triggerRef } = useDropdownMenu();
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const childRef = (children as any)?.ref;
   const mergedRef = useMergeRefs(triggerRef, childRef);
@@ -117,18 +108,13 @@ const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
   };
 
   if (asChild && React.isValidElement(children)) {
-    
     const childProps = children.props as {
       onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
     };
-
     const combinedOnClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      if (typeof childProps.onClick === "function") {
-        childProps.onClick(e);
-      }
+      childProps.onClick?.(e);
       handleClick(e);
     };
-
     return React.cloneElement(children, {
       ref: mergedRef,
       onClick: combinedOnClick,
@@ -156,129 +142,192 @@ interface DropdownMenuContentProps {
   children: React.ReactNode;
   className?: string;
   align?: "start" | "end" | "center";
+  position?: "top" | "bottom" | "left" | "right" | "auto";
 }
 
 const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   children,
   className,
   align = "start",
+  position = "auto",
 }) => {
   const { isOpen, setIsOpen, triggerRef, contentRef } = useDropdownMenu();
-  const [isMounted, setIsMounted] = useState(false);
+
   const [coords, setCoords] = useState<{
     top: number;
     left?: number;
     right?: number;
     minWidth: number;
-  } | null>(null);
+  }>({
+    top: 0,
+    left: 0,
+    minWidth: 0,
+  });
 
   useOnClickOutside(triggerRef, contentRef, () => setIsOpen(false));
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsOpen(false);
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [setIsOpen]);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen || !triggerRef.current) {
-      // NEW: Reset coords when closing
-      setCoords(null);
-      return;
-    }
+    if (!isOpen) return;
 
     const calculatePosition = () => {
-      if (!triggerRef.current) return;
+      const triggerEl = triggerRef.current;
+      const contentEl = contentRef.current;
+      if (!triggerEl || !contentEl) return;
 
-      const rect = triggerRef.current.getBoundingClientRect();
+      const triggerRect = triggerEl.getBoundingClientRect();
+      const contentRect = contentEl.getBoundingClientRect();
       const scrollY = window.scrollY;
       const scrollX = window.scrollX;
-      const newTop = rect.bottom + scrollY + 8; // 8px for mt-2
-      const newMinWidth = rect.width;
+      const margin = 8;
 
-      if (align === "end") {
-        setCoords({
-          top: newTop,
-          right: window.innerWidth - rect.right - scrollX,
-          minWidth: newMinWidth,
-        });
+      let top = 0;
+      let left: number | undefined;
+      let right: number | undefined;
+
+      // Default top alignment (used by top/bottom)
+      const spaceBelow = window.innerHeight - triggerRect.bottom;
+      const spaceAbove = triggerRect.top;
+
+      // Handle vertical placement
+      if (position === "top") {
+        top = triggerRect.top + scrollY - contentRect.height - margin;
+      } else if (position === "bottom") {
+        top = triggerRect.bottom + scrollY + margin;
+      } else if (position === "left" || position === "right") {
+        // Vertical alignment for side menus
+        if (align === "start") top = triggerRect.top + scrollY;
+        else if (align === "end") top = triggerRect.bottom + scrollY - contentRect.height;
+        else top = triggerRect.top + scrollY + (triggerRect.height - contentRect.height) / 2;
       } else {
-        setCoords({
-          top: newTop,
-          left: rect.left + scrollX,
-          minWidth: newMinWidth,
-        });
+        // Auto position (top/bottom based on space)
+        top =
+          spaceBelow >= contentRect.height || spaceBelow >= spaceAbove
+            ? triggerRect.bottom + scrollY + margin
+            : triggerRect.top + scrollY - contentRect.height - margin;
       }
+
+      // Handle horizontal placement
+      if (position === "left") {
+        right = window.innerWidth - triggerRect.left + scrollX + margin;
+      } else if (position === "right") {
+        left = triggerRect.right + scrollX + margin;
+      } else if (align === "end") {
+        right = window.innerWidth - triggerRect.right - scrollX;
+      } else if (align === "center") {
+        left = triggerRect.left + scrollX + triggerRect.width / 2 - contentRect.width / 2;
+      } else {
+        left = triggerRect.left + scrollX;
+      }
+
+      setCoords({
+        top,
+        left,
+        right,
+        minWidth: triggerRect.width,
+      });
     };
 
-    calculatePosition();
+    const raf = requestAnimationFrame(() => {
+      calculatePosition();
+      requestAnimationFrame(calculatePosition);
+    });
 
     window.addEventListener("resize", calculatePosition);
     document.addEventListener("scroll", calculatePosition, true);
 
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener("resize", calculatePosition);
       document.removeEventListener("scroll", calculatePosition, true);
     };
-  }, [isOpen, triggerRef, align]);
+  }, [isOpen, align, position, triggerRef, contentRef]);
 
-  // Do not render on server or if closed
-  if (!isOpen || !isMounted) return null;
-  
-  // NEW: Do not render until coords are calculated
-  // This prevents flashing at (0,0)
-  if (!coords) return null;
+  // Determine animation direction based on position
+  const getAnimationVariants = () => {
+    if (position === "left") {
+      return {
+        initial: { opacity: 0, scale: 0.95, x: 16 },
+        animate: { opacity: 1, scale: 1, x: 0 },
+        exit: { opacity: 0, scale: 0.95, x: 16 }
+      };
+    } else if (position === "right") {
+      return {
+        initial: { opacity: 0, scale: 0.95, x: -16 },
+        animate: { opacity: 1, scale: 1, x: 0 },
+        exit: { opacity: 0, scale: 0.95, x: -16 }
+      };
+    } else if (position === "top") {
+      return {
+        initial: { opacity: 0, scale: 0.95, y: 16 },
+        animate: { opacity: 1, scale: 1, y: 0 },
+        exit: { opacity: 0, scale: 0.95, y: 16 }
+      };
+    } else {
+      // bottom or auto
+      return {
+        initial: { opacity: 0, scale: 0.95, y: -16 },
+        animate: { opacity: 1, scale: 1, y: 0 },
+        exit: { opacity: 0, scale: 0.95, y: -16 }
+      };
+    }
+  };
 
-  const contentElement = (
-    <div
-      ref={contentRef}
-      role="menu"
-      data-align={align}
-      style={{
-        position: "absolute",
-        top: `${coords.top}px`,
-        left: coords.left !== undefined ? `${coords.left}px` : "auto",
-        right: coords.right !== undefined ? `${coords.right}px` : "auto",
-        minWidth: `${coords.minWidth}px`,
-      }}
-      className={cn(
-        "z-50 min-w-[8rem] rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-1 shadow-md outline-none",
-        align === "end" ? "origin-top-right" : "origin-top-left",
-        className
+  const variants = getAnimationVariants();
+
+  return ReactDOM.createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          ref={contentRef}
+          role="menu"
+          initial={variants.initial}
+          animate={variants.animate}
+          exit={variants.exit}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          style={{
+            position: "absolute",
+            top: `${coords.top}px`,
+            left: coords.left !== undefined ? `${coords.left}px` : "auto",
+            right: coords.right !== undefined ? `${coords.right}px` : "auto",
+            minWidth: `${coords.minWidth}px`,
+          }}
+          className={cn(
+            "z-[5000] min-w-[8rem] rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-1 shadow-md outline-none",
+            position === "left"
+              ? "origin-center-right"
+              : position === "right"
+              ? "origin-center-left"
+              : position === "top"
+              ? "origin-bottom-center"
+              : "origin-top-center", // bottom or auto
+            className
+          )}
+        >
+          {children}
+        </motion.div>
       )}
-    >
-      {children}
-    </div>
+    </AnimatePresence>,
+    document.body
   );
-
-  return ReactDOM.createPortal(contentElement, document.body);
 };
 
-
-// --- Item ---
+// --- Items ---
 interface DropdownMenuItemProps {
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
 }
 
-const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({ 
-  children, 
-  className, 
-  onClick 
+const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
+  children,
+  className,
+  onClick,
 }) => {
   const { setIsOpen } = useDropdownMenu();
-
   return (
     <div
       role="menuitem"
-      tabIndex={0} // make it focusable
+      tabIndex={0}
       className={cn(
         "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm text-[hsl(var(--muted-foreground))] transition-colors",
         "hover:bg-[hsl(var(--foreground))]/5 hover:text-[hsl(var(--foreground))]",
@@ -301,25 +350,12 @@ const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
   );
 };
 
-// --- Label ---
-interface DropdownMenuLabelProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-const DropdownMenuLabel: React.FC<DropdownMenuLabelProps> = ({
+const DropdownMenuLabel: React.FC<{ children: React.ReactNode; className?: string }> = ({
   children,
   className,
-}) => (
-  <div className={cn("px-2 py-1.5 text-sm font-semibold", className)}>
-    {children}
-  </div>
-);
+}) => <div className={cn("px-2 py-1.5 text-sm font-semibold", className)}>{children}</div>;
 
-// --- Group ---
-const DropdownMenuGroup: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <>{children}</>
-);
+const DropdownMenuGroup: React.FC<{ children: React.ReactNode }> = ({ children }) => <>{children}</>;
 
 export {
   DropdownMenu,

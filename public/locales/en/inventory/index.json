@@ -1,0 +1,26 @@
+{
+    "title": "Inventory Hub",
+    "description": "Manage your inventory here.",
+    "cards": {
+        "products": {
+            "title": "Products",
+            "description": "Manage your products."
+        },
+        "productTypes": {
+            "title": "Product Types",
+            "description": "Manage your product types."
+        },
+        "stocks": {
+            "title": "Stocks",
+            "description": "Manage your stocks."
+        },
+        "suppliers": {
+            "title": "Suppliers",
+            "description": "Manage your suppliers."
+        },
+        "warehouses": {
+            "title": "Warehouses",
+            "description": "Manage your warehouses."
+        }
+    }
+}

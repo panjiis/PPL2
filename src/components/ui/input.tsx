@@ -108,7 +108,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className={`grid w-full items-center gap-x-2 ${icon || label ? "gap-y-2" : ""}`}>
-        {label && <Label htmlFor={props.id || id}>{label}</Label>}
+        <div className="flex gap-1.5">
+          {icon && <span>{icon}</span>}
+          {label && <Label htmlFor={props.id || id}>{label}</Label>}
+        </div>
         {isCurrency ? (
           <div className="flex items-center border border-[hsl(var(--input))] rounded-md h-10 bg-[hsl(var(--background))] overflow-hidden">
             <span className="h-full px-3 flex items-center border-r border-[hsl(var(--border))] bg-[hsl(var(--foreground))]/5">

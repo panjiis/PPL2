@@ -1,0 +1,14 @@
+{
+  "pageTitle": "Manajemen Produk",
+  "pageDescription": "Kelola produk Anda di sini.",
+  "tableCaption": "Daftar produk dalam sistem.",
+  "productCode": "Kode Produk",
+  "productName": "Nama Produk",
+  "productType": "Jenis Produk",
+  "supplier": "Pemasok",
+  "unitOfMeasure": "Satuan Ukur",
+  "reorderLevel": "Tingkat Pemesanan Ulang",
+  "maxStockLevel": "Tingkat Stok Maksimum",
+  "viewDetails": "Lihat Detail",
+  "editProduct": "Edit Produk"
+}

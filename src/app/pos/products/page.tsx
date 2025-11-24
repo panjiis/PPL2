@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { POSProduct } from "@/lib/types/pos/products";
 import { formatCurrency } from "@/lib/utils/string";
 import { CreatePOSProductModal, UpdatePOSProductModal } from "@/components/pos/product-modals";
+import { Badge } from "@/components/ui/badge";
 
 export default function ProductPage() {
   const { session, isLoading } = useSession();
@@ -68,7 +69,7 @@ export default function ProductPage() {
                 : `https://placehold.co/64?text=${encodeURIComponent(productName)}`
             }
             alt={productName}
-            className="w-16 h-16 object-cover"
+            className="w-16 h-16 object-cover rounded"
           />
         );
       },
@@ -85,6 +86,22 @@ export default function ProductPage() {
       accessorKey: "product_name",
       header: "Product Name",
       meta: { type: "string" as const },
+    },
+    { 
+      accessorKey: "product_group",
+      header: "Product Group",
+      meta: { type: "string" as const },
+      cell: ({ row }) => {
+        const productGroup = row.original.product_group.product_group_name || "N/A";
+
+        return (
+          <Badge
+            variant={"secondary"}
+          >
+            {productGroup}
+          </Badge>
+        );
+      },
     },
     { 
       accessorKey: "product_price",
@@ -162,7 +179,10 @@ export default function ProductPage() {
       <DataView
         data={products}
         columns={productColumns}
+        enableAdvancedSearch
         searchableColumn="product_name"
+        searchableGroup="product_group.product_group_name"
+        searchableIcon="image_url"
         caption="List of point of sale products in system."
         onCreate={() => setCreateModalOpen(true)}
         renderListItem={(product) => (

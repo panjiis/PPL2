@@ -1,0 +1,26 @@
+{
+    "title": "Point of Sale Hub",
+    "description": "Manage your point of sale here.",
+    "cards": {
+        "discounts": {
+            "title": "Discounts",
+            "description": "Manage your discounts."
+        },
+        "orders": {
+            "title": "Orders",
+            "description": "Manage your orders."
+        },
+        "payments": {
+            "title": "Payments",
+            "description": "Manage your payments."
+        },
+        "products": {
+            "title": "Products",
+            "description": "Manage your products."
+        },
+        "productGroups": {
+            "title": "Product Groups",
+            "description": "Manage your product groups."
+        }
+    }
+}

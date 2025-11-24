@@ -164,13 +164,16 @@ export function ReserveStock({
   open,
   onClose,
   onReserved,
+  stock, // Add this prop
 }: {
   open: boolean;
   onClose: () => void;
   onReserved: (stock: Stock) => void;
+  stock?: AggregatedStock | null; // Add this type
 }) {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<SelectOption[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<SelectOption[]>([]);
   const { session } = useSession();
   const { toast } = useToast();
@@ -182,6 +185,28 @@ export function ReserveStock({
     reference_id: "",
     reserved_by: session?.user?.id || 1
   });
+
+  // Set product code from stock prop when available
+  useEffect(() => {
+    if (stock?.product_code) {
+      setForm(prev => ({ ...prev, product_code: stock.product_code }));
+    } else if (stock === null) {
+      setForm(prev => ({ ...prev, product_code: "" }));
+    }
+  }, [stock]);
+
+  const handleSelectProduct = (product_code: string | null) => {
+    if (!product_code) {
+      return setForm(prev => ({ ...prev, product_code: "" }));
+    }
+    const product = allProducts.find(p => p.product_code === product_code);
+    if (product) {
+      setForm(prev => ({
+        ...prev,
+        product_code: product.product_code,
+      }));
+    }
+  };
 
   useEffect(() => {
     if (!session?.token || !open) return;
@@ -209,6 +234,7 @@ export function ReserveStock({
     const loadProducts = async () => {
       try {
         const res = await fetchProducts(session.token);
+        setAllProducts(res);
         const opts = res.map((r: Product) => ({ value: r.product_code, label: r.product_name }));
         setProducts(opts);
       } catch (err) {
@@ -274,10 +300,8 @@ export function ReserveStock({
         <Select
           label="Product"
           options={products}
-          value={form.product_code}
-          onChange={(v) => {
-            if (v !== null) setForm({ ...form, product_code: v });
-          }}
+          value={form.product_code || null}
+          onChange={handleSelectProduct}
           placeholder="Select a product"
           searchable
         />
@@ -329,13 +353,16 @@ export function ReleaseStock({
   open,
   onClose,
   onReleased,
+  stock, // Add this prop
 }: {
   open: boolean;
   onClose: () => void;
   onReleased: (stock: Stock) => void;
+  stock?: AggregatedStock | null; // Add this type
 }) {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<SelectOption[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<SelectOption[]>([]);
   const [users, setUsers] = useState<SelectOption[]>([]);
   const { session } = useSession();
@@ -348,6 +375,28 @@ export function ReleaseStock({
     released_by: session?.user?.id || 1
   });
   
+  // Set product code from stock prop when available
+  useEffect(() => {
+    if (stock?.product_code) {
+      setForm(prev => ({ ...prev, product_code: stock.product_code }));
+    } else if (stock === null) {
+      setForm(prev => ({ ...prev, product_code: "" }));
+    }
+  }, [stock]);
+
+  const handleSelectProduct = (product_code: string | null) => {
+    if (!product_code) {
+      return setForm(prev => ({ ...prev, product_code: "" }));
+    }
+    const product = allProducts.find(p => p.product_code === product_code);
+    if (product) {
+      setForm(prev => ({
+        ...prev,
+        product_code: product.product_code,
+      }));
+    }
+  };
+
   useEffect(() => {
     if (!session?.token || !open) return
     const loadWarehouses = async () => {
@@ -381,6 +430,7 @@ export function ReleaseStock({
     const loadProducts = async () => {
       try {
         const res = await fetchProducts(session.token);
+        setAllProducts(res);
         const opts = res.map((r: Product) => ({ value: r.product_code, label: r.product_name }));
         setProducts(opts);
       } catch (err) {
@@ -443,21 +493,11 @@ export function ReleaseStock({
   return (
     <ModalShell open={open} onClose={onClose} title="Release Stock">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* <Input
-          label="Product Code"
-          name="product_code"
-          placeholder="Product Code"
-          value={form.product_code}
-          onChange={handleChange}
-          required
-        /> */}
         <Select
           label="Product"
           options={products}
-          value={form.product_code}
-          onChange={(v) => {
-            if (v !== null) setForm({ ...form, product_code: v });
-          }}
+          value={form.product_code || null}
+          onChange={handleSelectProduct}
           placeholder="Select a product"
           searchable
         />
@@ -509,13 +549,16 @@ export function TransferStock({
   open,
   onClose,
   onTransferred,
+  stock, // Add this prop
 }: {
   open: boolean;
   onClose: () => void;
   onTransferred: (stock: Stock) => void;
+  stock?: AggregatedStock | null; // Add this type
 }) {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<SelectOption[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<SelectOption[]>([]);
   const { session } = useSession();
   const { toast } = useToast();
@@ -528,6 +571,28 @@ export function TransferStock({
     notes: "",
     transferred_by: session?.user?.id || 1
   });
+
+  // Set product code from stock prop when available
+  useEffect(() => {
+    if (stock?.product_code) {
+      setForm(prev => ({ ...prev, product_code: stock.product_code }));
+    } else if (stock === null) {
+      setForm(prev => ({ ...prev, product_code: "" }));
+    }
+  }, [stock]);
+
+  const handleSelectProduct = (product_code: string | null) => {
+    if (!product_code) {
+      return setForm(prev => ({ ...prev, product_code: "" }));
+    }
+    const product = allProducts.find(p => p.product_code === product_code);
+    if (product) {
+      setForm(prev => ({
+        ...prev,
+        product_code: product.product_code,
+      }));
+    }
+  };
 
   useEffect(() => {
     if (!session?.token || !open) return
@@ -562,6 +627,7 @@ export function TransferStock({
     const loadProducts = async () => {
       try {
         const res = await fetchProducts(session.token);
+        setAllProducts(res);
         const opts = res.map((r: Product) => ({ value: r.product_code, label: r.product_name }));
         setProducts(opts);
       } catch (err) {
@@ -625,21 +691,11 @@ export function TransferStock({
   return (
     <ModalShell open={open} onClose={onClose} title="Transfer Stock">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* <Input
-          label="Product Code"
-          name="product_code"
-          placeholder="Product Code"
-          value={form.product_code}
-          onChange={handleChange}
-          required
-        /> */}
         <Select
           label="Product"
           options={products}
-          value={form.product_code}
-          onChange={(v) => {
-            if (v !== null) setForm({ ...form, product_code: v });
-          }}
+          value={form.product_code || null}
+          onChange={handleSelectProduct}
           placeholder="Select a product"
           searchable
         />
@@ -698,13 +754,16 @@ export function UpdateStock({
   open,
   onClose,
   onUpdated,
+  stock,
 }: {
   open: boolean;
   onClose: () => void;
   onUpdated: (stock: Stock) => void;
+  stock?: AggregatedStock | null;
 }) {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<SelectOption[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<SelectOption[]>([]);
   const { session } = useSession();
   const { toast } = useToast();
@@ -731,50 +790,78 @@ export function UpdateStock({
     label: type,
   }));
 
+  // Set product code from stock prop when available
   useEffect(() => {
-    if (!session?.token || !open) return
+    if (stock?.product_code) {
+      setForm(prev => ({ ...prev, product_code: stock.product_code }));
+    } else if (stock === null) {
+      setForm(prev => ({ ...prev, product_code: "" }));
+    }
+  }, [stock]);
+
+  useEffect(() => {
+    if (!session?.token || !open) return;
+    
     const loadWarehouses = async () => {
       try {
-        const res = await fetchWarehouses(session.token)
-        const opts = res.map((r: Warehouse) => ({ value: String(r.id), label: r.warehouse_name }))
-        setWarehouses(opts)
+        const res = await fetchWarehouses(session.token);
+        const opts = res.map((r: Warehouse) => ({ value: String(r.id), label: r.warehouse_name }));
+        setWarehouses(opts);
       } catch (err) {
         toast({
           variant: "danger",
-          title: "Failed to load users",
+          title: "Failed to load warehouses",
           description: err instanceof Error ? err.message : "Unknown error",
-        })
+        });
       }
-    }
+    };
     
     const loadUsers = async () => {
       try {
-        const res = await fetchUsers(session.token)
-        const opts = res.map((r: User) => ({ value: String(r.id), label: r.username }))
-        setUsers(opts)
+        const res = await fetchUsers(session.token);
+        const opts = res.map((r: User) => ({ value: String(r.id), label: r.username }));
+        setUsers(opts);
       } catch (err) {
         toast({
           variant: "danger",
           title: "Failed to load users",
           description: err instanceof Error ? err.message : "Unknown error",
-        })
+        });
       }
-    }
+    };
   
     const loadProducts = async () => {
       try {
         const res = await fetchProducts(session.token);
+        setAllProducts(res);
         const opts = res.map((r: Product) => ({ value: r.product_code, label: r.product_name }));
         setProducts(opts);
       } catch (err) {
-        toast({ variant: "danger", title: "Failed to load products", description: err instanceof Error ? err.message : "Unknown error" });
+        toast({ 
+          variant: "danger", 
+          title: "Failed to load products", 
+          description: err instanceof Error ? err.message : "Unknown error" 
+        });
       }
     };
 
-    loadWarehouses()
-    loadUsers()
-    loadProducts()
-  }, [session?.token, open, toast])
+    loadWarehouses();
+    loadUsers();
+    loadProducts();
+  }, [session?.token, open, toast]);
+
+  const handleSelectProduct = (product_code: string | null) => {
+    if (!product_code) {
+      return setForm(prev => ({ ...prev, product_code: "" }));
+    }
+    const product = allProducts.find(p => p.product_code === product_code);
+    if (product) {
+      setForm(prev => ({
+        ...prev,
+        product_code: product.product_code,
+      }));
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value: string | number = e.target.value;
@@ -788,7 +875,7 @@ export function UpdateStock({
       return toast({
         variant: "danger",
         title: "Unauthorized",
-        description: "You must be logged in to transfer a stock.",
+        description: "You must be logged in to update stock.",
       });
     }
 
@@ -819,7 +906,7 @@ export function UpdateStock({
       console.error(err);
       toast({
         variant: "danger",
-        title: "Failed to reserve stock",
+        title: "Failed to update stock",
         description: err instanceof Error ? err.message : "Unknown error",
       });
     } finally {
@@ -833,10 +920,8 @@ export function UpdateStock({
         <Select
           label="Product"
           options={products}
-          value={form.product_code}
-          onChange={(v) => {
-            if (v !== null) setForm({ ...form, product_code: v });
-          }}
+          value={form.product_code || null}
+          onChange={handleSelectProduct}
           placeholder="Select a product"
           searchable
         />
@@ -889,7 +974,7 @@ export function UpdateStock({
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || !form.product_code}>
             {loading ? "Updating..." : "Update"}
           </Button>
         </div>

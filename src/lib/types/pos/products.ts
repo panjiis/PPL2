@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TimestampSchema } from "@/lib/types/timestamp";
+import { POSProductGroupSchema } from "./product-groups";
 
 // export type POSProduct = {
 //   product_code: string;
@@ -13,7 +14,7 @@ import { TimestampSchema } from "@/lib/types/timestamp";
 export const POSProductSchema = z.object({
   product_code: z.string(),
   product_name: z.string(),
-  product_group_id: z.number().optional(),
+  product_group_id: z.number(),
   product_price: z.string(),
   cost_price: z.string(),
   color: z.string().optional(),
@@ -21,6 +22,8 @@ export const POSProductSchema = z.object({
   is_active: z.boolean(),
   created_at: TimestampSchema,
   updated_at: TimestampSchema,
+
+  product_group: POSProductGroupSchema,
 });
 
 export const POSProductsResponseSchema = z.object({

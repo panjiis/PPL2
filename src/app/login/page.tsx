@@ -111,7 +111,7 @@ export default function LoginPage() {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen">
       <Image priority src="https://placehold.co/256x256" alt="" width={256} height={256} className="w-full aspect-[3/2] object-cover -mb-4 md:hidden"/>
-      <Card className="w-full min-h-screen md:min-h-auto md:max-w-sm rounded-b-none rounded-t-2xl md:rounded-b-2xl">
+      <Card className="w-full flex-1 md:flex-0 md:max-w-sm rounded-b-none rounded-t-2xl md:rounded-b-2xl">
         <CardHeader>
           <CardTitle>SYNTRA Login Portal</CardTitle>
           <CardDescription>

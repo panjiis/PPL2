@@ -1,6 +1,6 @@
 // === Stocks ===
 
-import { Stock, StocksResponse, StockResponse, ReserveStockResponse, ReleaseStockResponse, StockMovement, UpdateStockResponse, TransferStockResponse } from "@/lib/types/inventory/stocks";
+import { Stock, StocksResponse, StockResponse, ReserveStockResponse, ReleaseStockResponse, StockMovement, UpdateStockResponse, TransferStockResponse, ListStockMovementsResponse } from "@/lib/types/inventory/stocks";
 import { BASE_URL } from "../config";
 import { handleResponse } from "../utils";
 
@@ -18,6 +18,14 @@ export async function fetchStocks(token: string): Promise<Stock[]> {
     headers: { Authorization: `Bearer ${token}` },
   });
   const json = await handleResponse<StocksResponse>(res);
+  return json.data;
+}
+
+export async function fetchStockMovements(token: string): Promise<StockMovement[]> {
+  const res = await fetch(`${BASE_URL}/inventory/movements`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const json = await handleResponse<ListStockMovementsResponse>(res);
   return json.data;
 }
 

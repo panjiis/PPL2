@@ -63,8 +63,13 @@ export default function ProductPage() {
       accessorKey: "image_url",
       header: "Product Group Image",
       meta: { type: "string" as const },
-      cell: ({ getValue }) => (
-        <img src={getValue<string>()} alt="Product Group" className="w-16 h-16 object-cover" />
+      cell: ({ row }) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={
+              row.original.image_url && row.original.image_url.trim() !== ""
+                ? row.original.image_url
+                : `https://placehold.co/64/${encodeURIComponent(row.original.color ?? "")}/000?text=${encodeURIComponent(row.original.product_group_name)}`
+            } alt="Product Group" className="w-16 h-16 object-cover rounded" />
       ),
     },
     { 

@@ -1,0 +1,66 @@
+{
+  "welcome": "Welcome, {{username}}.",
+  "description": "Here is your business summary.",
+  "loadingSession": "Loading session...",
+  "redirectingLogin": "Redirecting to login...",
+  "businessAnalytics": "Business Analytics",
+  "timeRange": {
+    "today": "Today",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "thisYear": "This Year",
+    "allTime": "All Time"
+  },
+  "widgets": {
+    "inventory": {
+      "title": "Inventory Overview",
+      "totalProducts": "Total products",
+      "lowStockItems": "Low stock items",
+      "lowStockTitle": "Products low on stock",
+      "andMore": "...and +{{count}} more items"
+    },
+    "warehouse": {
+      "title": "Warehouse Overview",
+      "active": "Active",
+      "inactive": "Inactive",
+      "noData": "No data"
+    },
+    "commission": {
+      "title": "Commission Overview",
+      "paid": "Paid",
+      "pending": "Pending",
+      "rejected": "Rejected"
+    },
+    "salesReport": {
+      "title": "Today's Performance",
+      "description": "Revenue and transaction summary",
+      "revenue": "Revenue",
+      "profit": "Profit"
+    },
+    "revenue": {
+      "title": "Today's Revenue",
+      "trend": "Trend"
+    },
+    "topProduct": {
+      "title": "This Month's Top Product",
+      "name": "Product Name",
+      "unitsSold": "Units Sold",
+      "noData": "No data"
+    },
+    "transactions": {
+      "title": "Today's Transactions",
+      "value": "Transactions",
+      "description": "{{count}} items sold"
+    },
+    "topPerformers": {
+      "title": "Top Performers This Month",
+      "noData": "No data"
+    },
+    "peakHours": {
+      "title": "Peak Hours"
+    }
+  },
+  "breadcrumb": {
+    "home": "Home"
+  }
+}

@@ -5,27 +5,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useTranslation } from "react-i18next";
 
 interface BreadcrumbProps {
   className?: string;
-  rootLabel?: string;
-  segmentLabels?: Record<string, string>;
 }
-export function Breadcrumbs({
-        className,
-        rootLabel = "Dashboard",
-        segmentLabels = {},
-    }: BreadcrumbProps) {
+
+export function Breadcrumbs({ className }: BreadcrumbProps) {
   const pathname = usePathname();
+  const { t } = useTranslation("common"); // use common.json namespace
   const segments = pathname?.split("/").filter(Boolean) || [];
 
   const items = [
-    { label: rootLabel, href: "/" },
+    { label: t("breadcrumbs.home"), href: "/" },
     ...segments.map((seg, index) => {
       const href = "/" + segments.slice(0, index + 1).join("/");
-      const label =
-        segmentLabels[seg] ||
-        seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      const label = t(`breadcrumbs.${seg}`, { defaultValue: seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) });
       return { label, href };
     }),
   ];

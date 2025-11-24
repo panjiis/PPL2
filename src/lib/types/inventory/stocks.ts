@@ -18,6 +18,14 @@ export const MovementTypeMap: Record<MovementType, number> = {
   TRANSFER: 4,
 };
 
+export const MovementTypeLabels: Record<number, MovementType> = {
+  0: "UNSPECIFIED",
+  1: "INBOUND",
+  2: "OUTBOUND",
+  3: "ADJUSTMENT",
+  4: "TRANSFER",
+};
+
 export const ReferenceTypeSchema = z.enum(["UNSPECIFIED", "PURCHASE", "SALE", "ADJUSTMENT", "TRANSFER", "RETURN"]);
 export type ReferenceType = z.infer<typeof ReferenceTypeSchema>;
 
@@ -28,6 +36,15 @@ export const ReferenceTypeMap: Record<ReferenceType, number> = {
   ADJUSTMENT: 3,
   TRANSFER: 4,
   RETURN: 5,
+};
+
+export const ReferenceTypeLabels: Record<number, string> = {
+  0: "UNSPECIFIED",
+  1: "PURCHASE",
+  2: "SALE",
+  3: "ADJUSTMENT",
+  4: "TRANSFER",
+  5: "RETURN",
 };
 
 // --- STOCK ---
@@ -75,6 +92,9 @@ export const StockMovementSchema = z.object({
   created_by: z.number(),
   manager_name: z.string().optional(),
   created_at: TimestampSchema,
+
+  product: ProductSchema.optional(),
+  warehouse: WarehouseSchema.optional(),
 });
 
 export type StockMovement = z.infer<typeof StockMovementSchema>;
@@ -189,7 +209,7 @@ export const ListStockMovementsRequestSchema = z.object({
 });
 
 export const ListStockMovementsResponseSchema = z.object({
-  stock_movements: z.array(StockMovementSchema),
+  data: z.array(StockMovementSchema),
   pagination: PaginationResponseSchema,
 });
 

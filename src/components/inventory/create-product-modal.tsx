@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
@@ -35,6 +36,7 @@ export function CreateProductModal({
   const [loading, setLoading] = useState(false);
   const { session } = useSession();
   const { toast } = useToast();
+  const router = useRouter();
   const [productTypes, setProductTypes] = useState<SelectOption[]>([]);
   const [suppliers, setSuppliers] = useState<SelectOption[]>([]);
   
@@ -119,8 +121,15 @@ export function CreateProductModal({
 
         toast({
             variant: "success",
-            title: "Product  Created",
+            title: "Product Created",
             description: `${newProduct.product_name} was added successfully.`,
+            action: {
+                label: "Add Stock",
+                onClick: () => {
+                  // Navigate to stocks page with query parameter
+                  router.push(`/inventory/stocks?openUpdate=true&productCode=${encodeURIComponent(newProduct.product_code)}`);
+                }
+              }
             });
 
             setForm({ 

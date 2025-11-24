@@ -1,0 +1,27 @@
+{
+  "breadcrumbs": {
+    "home": "Beranda",
+    "inventory": "Inventaris",
+    "products": "Produk",
+    "product-types": "Jenis Produk",
+    "stocks": "Stok",
+    "stock-movements": "Pergerakan Stok",
+    "suppliers": "Pemasok",
+    "warehouses": "Gudang",
+    "personnel": "Personel",
+    "commissions": "Komisi",
+    "employees": "Karyawan",
+    "roles": "Peran",
+    "users": "Pengguna",
+    "pos": "POS",
+    "discounts": "Diskon",
+    "orders": "Pesanan",
+    "payment-types": "Jenis Pembayaran",
+    "product-groups": "Grup Produk",
+    "settings": "Pengaturan",
+    "appearance": "Tampilan"
+  },
+  "actions": {
+    "openMenu": "Open menu"
+  }
+}

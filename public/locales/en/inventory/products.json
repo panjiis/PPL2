@@ -1,0 +1,14 @@
+{
+  "pageTitle": "Product Management",
+  "pageDescription": "Manage your products here.",
+  "tableCaption": "List of products in the system.",
+  "productCode": "Product Code",
+  "productName": "Product Name",
+  "productType": "Product Type",
+  "supplier": "Supplier",
+  "unitOfMeasure": "Unit Of Measure",
+  "reorderLevel": "Reorder Level",
+  "maxStockLevel": "Max Stock Level",
+  "viewDetails": "View Details",
+  "editProduct": "Edit Product"
+}

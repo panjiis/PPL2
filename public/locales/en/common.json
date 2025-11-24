@@ -1,0 +1,27 @@
+{
+  "breadcrumbs": {
+    "home": "Home",
+    "inventory": "Inventory",
+    "products": "Products",
+    "product-types": "Product Types",
+    "stocks": "Stocks",
+    "stock-movements": "Stock Movements",
+    "suppliers": "Suppliers",
+    "warehouses": "Warehouses",
+    "personnel": "Personnel",
+    "commissions": "Commissions",
+    "employees": "Employees",
+    "roles": "Roles",
+    "users": "Users",
+    "pos": "POS",
+    "discounts": "Discounts",
+    "orders": "Orders",
+    "payment-types": "Payment Types",
+    "product-groups": "Product Groups",
+    "settings": "Settings",
+    "appearance": "Appearance"
+  },
+  "actions": {
+    "openMenu": "Open menu"
+  }
+}

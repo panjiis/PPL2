@@ -1,0 +1,28 @@
+{
+  "sidebar": {
+    "home": "Beranda",
+    "inventory": "Inventaris",
+    "products": "Produk",
+    "productTypes": "Jenis Produk",
+    "stocks": "Stok",
+    "stockMovements": "Pergerakan Stok",
+    "suppliers": "Pemasok",
+    "warehouses": "Gudang",
+    "personnel": "Personel",
+    "commissions": "Komisi",
+    "employees": "Karyawan",
+    "roles": "Peran",
+    "users": "Pengguna",
+    "pos": "POS",
+    "discounts": "Diskon",
+    "orders": "Pesanan",
+    "paymentTypes": "Jenis Pembayaran",
+    "productGroups": "Grup Produk",
+    "settings": "Pengaturan",
+    "appearance": "Tampilan",
+    "openMenu": "Buka menu",
+    "logout": "Keluar",
+    "changeToIndonesian": "Ganti ke Bahasa Indonesia",
+    "changeToEnglish": "Ganti ke Bahasa Inggris"
+  }
+}

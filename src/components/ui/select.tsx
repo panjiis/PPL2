@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef, useId } from "react"
+import React, { useState, useMemo, useRef, useId, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown, XIcon } from "lucide-react"
@@ -12,10 +12,8 @@ export interface SelectOption<T extends string | number = string> {
   label: React.ReactNode
 }
 
-export interface SelectProps<T extends string | number = string> {
+interface BaseSelectProps<T extends string | number = string> {
   options: SelectOption<T>[]
-  value?: T | null
-  onChange?: (value: T | null) => void
   placeholder?: string
   className?: string
   triggerClassName?: string
@@ -28,21 +26,40 @@ export interface SelectProps<T extends string | number = string> {
   disabled?: boolean
 }
 
-export const Select = <T extends string | number = string>({
-  options,
-  value,
-  onChange,
-  placeholder = "Select an option...",
-  className,
-  triggerClassName,
-  contentClassName,
-  itemClassName,
-  label,
-  icon,
-  id,
-  searchable = false,
-  disabled = false,
-}: SelectProps<T>) => {
+export interface SingleSelectProps<T extends string | number = string>
+  extends BaseSelectProps<T> {
+  multiple?: false
+  value?: T | null
+  onChange?: (value: T | null) => void
+}
+
+export interface MultiSelectProps<T extends string | number = string>
+  extends BaseSelectProps<T> {
+  multiple: true
+  value?: T[] | null
+  onChange?: (value: T[] | null) => void
+}
+
+export function Select<T extends string | number = string>(
+  props: SingleSelectProps<T> | MultiSelectProps<T>
+) {
+  const {
+    options,
+    value,
+    onChange,
+    placeholder = "Select an option...",
+    className,
+    triggerClassName,
+    contentClassName,
+    itemClassName,
+    label,
+    icon,
+    id,
+    searchable = false,
+    disabled = false,
+    multiple = false,
+  } = props
+
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1)
   const [searchTerm, setSearchTerm] = useState("")
@@ -53,17 +70,21 @@ export const Select = <T extends string | number = string>({
   const selectId = id ?? generatedId
   const dropdownId = `${selectId}-listbox`
 
-  const filteredOptions = searchable
-    ? options.filter((o) =>
-        String(o.label).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : options
+  const selectedValues = Array.isArray(value) ? value : value ? [value] : []
 
-  const selectedOption = options.find((option) => option.value === value)
+  const stableOptions = useMemo(() => options, [options]);
+
+  const filteredOptions = useMemo(() => {
+    return searchable
+      ? stableOptions.filter((o) =>
+          String(o.label).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : stableOptions;
+  }, [stableOptions, searchTerm, searchable]);
 
   useEffect(() => {
     setHighlightedIndex(filteredOptions.length > 0 ? 0 : -1)
-  }, [filteredOptions])
+  }, [filteredOptions.length])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -76,61 +97,46 @@ export const Select = <T extends string | number = string>({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement | HTMLInputElement>) => {
-    const isInput = (e.target as HTMLElement).tagName === "INPUT"
-
-    if (!isOpen) {
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault()
-        setIsOpen(true)
-        setHighlightedIndex(filteredOptions.length > 0 ? 0 : -1)
-      }
-      return
-    }
-
-    if (!isInput) {
-      switch (e.key) {
-        case "ArrowDown":
-          e.preventDefault()
-          setHighlightedIndex((prev) => (prev + 1) % filteredOptions.length)
-          scrollToHighlighted()
-          break
-        case "ArrowUp":
-          e.preventDefault()
-          setHighlightedIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length)
-          scrollToHighlighted()
-          break
-        case "Enter":
-        case " ":
-          e.preventDefault()
-          const option = filteredOptions[highlightedIndex]
-          if (option) handleSelectOption(option.value)
-          break
-        case "Escape":
-          e.preventDefault()
-          setIsOpen(false)
-          setSearchTerm("")
-          break
-      }
-    }
-  }
-
   const scrollToHighlighted = () => {
     if (!listRef.current || highlightedIndex < 0) return
     const optionEl = listRef.current.children[highlightedIndex] as HTMLElement
     optionEl?.scrollIntoView({ block: "nearest" })
   }
 
-  const handleSelectOption = (optionValue: T | null) => {
+  const handleSelectOption = (optionValue: T) => {
     if (disabled) return
-    onChange?.(optionValue)
-    setIsOpen(false)
+
+    if (multiple) {
+      const newValues = selectedValues.includes(optionValue)
+        ? selectedValues.filter((v) => v !== optionValue)
+        : [...selectedValues, optionValue]
+      ;(onChange as (value: T[] | null) => void)?.(
+        newValues.length > 0 ? newValues : null
+      )
+    } else {
+      ;(onChange as (value: T | null) => void)?.(optionValue)
+      setIsOpen(false)
+    }
+
     setHighlightedIndex(-1)
     setSearchTerm("")
   }
 
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    multiple
+      ? (onChange as (value: T[] | null) => void)?.(null)
+      : (onChange as (value: T | null) => void)?.(null)
+  }
+
+  const displayLabel = multiple
+    ? selectedValues
+        .map((val) => options.find((o) => o.value === val)?.label)
+        .filter(Boolean)
+    : options.find((o) => o.value === value)?.label
+
   return (
-    <div className="grid w-full items-center gap-1.5">
+    <div className={`grid items-center gap-x-2 ${icon || label ? "gap-y-2" : ""}`}>
       <div className="flex gap-1.5">
         {icon && <span>{icon}</span>}
         {label && <Label htmlFor={selectId}>{label}</Label>}
@@ -147,15 +153,29 @@ export const Select = <T extends string | number = string>({
             aria-haspopup="listbox"
             disabled={disabled}
             onClick={() => setIsOpen((prev) => !prev)}
-            onKeyDown={handleKeyDown}
             className={cn(
-              "flex h-10 w-full items-center justify-between rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50",
+              "flex h-10 w-full items-center justify-between rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer",
               triggerClassName
             )}
           >
-            <span className={!selectedOption ? "text-[hsl(var(--muted-foreground))]" : ""}>
-              {selectedOption?.label || placeholder}
-            </span>
+            {multiple ? (
+              <span className="flex flex-wrap gap-1">
+                {displayLabel && Array.isArray(displayLabel) && displayLabel.length > 0
+                  ? displayLabel.map((lbl, i) => (
+                      <span
+                        key={i}
+                        className="bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] px-2 py-0.5 rounded text-xs"
+                      >
+                        {lbl}
+                      </span>
+                    ))
+                  : <span className="text-[hsl(var(--muted-foreground))]">{placeholder}</span>}
+              </span>
+            ) : (
+              <span className={!displayLabel ? "text-[hsl(var(--muted-foreground))]" : ""}>
+                {displayLabel || placeholder}
+              </span>
+            )}
             <ChevronDown
               className={cn("h-4 w-4 opacity-50 transition-transform", isOpen && "rotate-180")}
             />
@@ -186,35 +206,42 @@ export const Select = <T extends string | number = string>({
                       type="text"
                       value={searchTerm}
                       onChange={(e) => !disabled && setSearchTerm(e.target.value)}
-                      onKeyDown={handleKeyDown}
                       placeholder="Search..."
-                      className={cn(
-                        "w-full border-b border-[hsl(var(--border))] px-3 py-2.5 text-sm outline-none",
-                        disabled && "pointer-events-none opacity-50 cursor-not-allowed"
-                      )}
+                      className="w-full border-b border-[hsl(var(--border))] px-3 py-2.5 text-sm outline-none"
                       autoFocus
                       disabled={disabled}
                     />
                   )}
                   <ul className="p-1" ref={listRef}>
-                    {filteredOptions.map((option, index) => (
-                      <li
-                        key={option.value}
-                        role="option"
-                        aria-selected={value === option.value}
-                        onClick={() => handleSelectOption(option.value)}
-                        onMouseEnter={() => setHighlightedIndex(index)}
-                        className={cn(
-                          "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none",
-                          index === highlightedIndex &&
-                            "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
-                          value === option.value && "font-semibold",
-                          itemClassName
-                        )}
-                      >
-                        {option.label}
-                      </li>
-                    ))}
+                    {filteredOptions.map((option, index) => {
+                      const selected = selectedValues.includes(option.value)
+                      return (
+                        <li
+                          key={option.value}
+                          role="option"
+                          aria-selected={selected}
+                          onClick={() => handleSelectOption(option.value)}
+                          onMouseEnter={() => setHighlightedIndex(index)}
+                          className={cn(
+                            "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none",
+                            index === highlightedIndex &&
+                              "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
+                            selected && "font-semibold",
+                            itemClassName
+                          )}
+                        >
+                          {multiple && (
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              readOnly
+                              className="mr-2 h-3.5 w-3.5 accent-[hsl(var(--accent))]"
+                            />
+                          )}
+                          {option.label}
+                        </li>
+                      )
+                    })}
                   </ul>
                 </motion.div>
               )}
@@ -223,11 +250,11 @@ export const Select = <T extends string | number = string>({
           )}
         </div>
 
-        {value !== null && (
+        {value && (
           <button
             type="button"
-            onClick={() => handleSelectOption(null)}
-            className="h-10 w-10 flex items-center justify-center rounded-md border border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]"
+            onClick={handleClear}
+            className="h-10 w-10 flex items-center justify-center rounded-md border border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] hover:cursor-pointer"
             title="Clear selection"
           >
             <XIcon className="h-4 w-4" />

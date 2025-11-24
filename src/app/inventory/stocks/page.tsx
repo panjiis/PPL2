@@ -1,13 +1,13 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import { useSession } from "@/lib/context/session";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { fetchStocks } from "@/lib/utils/api";
 import { AggregatedStock, Stock } from "@/lib/types/inventory/stocks";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { DataView } from "@/components/ui/data-view";
 import { ColumnDef } from "@tanstack/react-table";
-import { Info, MoreHorizontal } from "lucide-react";
+import { Info, MoreHorizontal, PlusIcon } from "lucide-react";
 import { StocksWarehouse, StocksAvailable, StocksReserved, ReserveStock, ReleaseStock, TransferStock, UpdateStock } from "@/components/inventory/stock-modals";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown";
@@ -15,9 +15,9 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 export default function StocksPage() {
   const { session, isLoading } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [stocks, setStocks] = useState<Stock[]>([]);
 
-  const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [selectedAggregatedStock, setSelectedAggregatedStock] = useState<AggregatedStock | null>(null);
   const [modalType, setModalType] = useState<"warehouse" | "available" | "reserved" | "reserveStock" | "releaseStock" | "transferStock" | "updateStock" | null>(null);
 
@@ -32,16 +32,6 @@ export default function StocksPage() {
       }
     })();
   }, [session, isLoading]);
-
-  const refreshStocks = async () => {
-    if (!session) return;
-    const refreshed = await fetchStocks(session.token);
-    setStocks(refreshed);
-  };
-
-  const handleStockUpdated = async () => {
-    await refreshStocks();
-  };
 
   const aggregatedStocks = useMemo<AggregatedStock[]>(() => {
     const grouped: Record<string, AggregatedStock> = {};
@@ -68,6 +58,39 @@ export default function StocksPage() {
     }
     return Object.values(grouped);
   }, [stocks]);
+
+  // Handle query parameters for opening update modal
+  useEffect(() => {
+    const openUpdate = searchParams.get('openUpdate');
+    const productCode = searchParams.get('productCode');
+    
+    if (openUpdate === 'true' && productCode && aggregatedStocks.length > 0) {
+      // Find the stock with the matching product code
+      const stock = aggregatedStocks.find(s => s.product_code === productCode);
+      
+      if (stock) {
+        setSelectedAggregatedStock(stock);
+        setModalType("updateStock");
+      } else {
+        // If stock doesn't exist yet, create a minimal aggregated stock object
+        setSelectedAggregatedStock({ product_code: productCode } as AggregatedStock);
+        setModalType("updateStock");
+      }
+      
+      // Clear the query parameters after opening the modal
+      router.replace('/inventory/stocks', { scroll: false });
+    }
+  }, [searchParams, aggregatedStocks, router]);
+
+  const refreshStocks = async () => {
+    if (!session) return;
+    const refreshed = await fetchStocks(session.token);
+    setStocks(refreshed);
+  };
+
+  const handleStockUpdated = async () => {
+    await refreshStocks();
+  };
 
   const stockColumns: ColumnDef<AggregatedStock>[] = [
     { 
@@ -153,25 +176,34 @@ export default function StocksPage() {
             <DropdownMenuItem onClick={() => router.push(`/inventory/products/${row.original.product_code}`) }>
               View Product
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => null }>
-              Check Stock
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setModalType("releaseStock") }>
+            <DropdownMenuItem onClick={() => {
+              setSelectedAggregatedStock(row.original);
+              setModalType("releaseStock");
+            }}>
               Release Stock
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setModalType("reserveStock") }>
+            <DropdownMenuItem onClick={() => {
+              setSelectedAggregatedStock(row.original);
+              setModalType("reserveStock");
+            }}>
               Reserve Stock
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setModalType("transferStock") }>
+            <DropdownMenuItem onClick={() => {
+              setSelectedAggregatedStock(row.original);
+              setModalType("transferStock");
+            }}>
               Transfer Stock
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setModalType("updateStock") }>
+            <DropdownMenuItem onClick={() => {
+              setSelectedAggregatedStock(row.original);
+              setModalType("updateStock");
+            }}>
               Update Stock
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
-    },
+    }
   ];
 
   const renderListItem = (item: AggregatedStock) => (
@@ -211,7 +243,7 @@ export default function StocksPage() {
 
   const handleClose = () => {
     setModalType(null);
-    setTimeout(() => setSelectedStock(null), 200);
+    setTimeout(() => setSelectedAggregatedStock(null), 200);
   };
 
   if (isLoading) return <p className="text-center p-10">Loading...</p>;
@@ -219,11 +251,18 @@ export default function StocksPage() {
   return (
     <div>
       <Breadcrumbs />
-      <div className="mt-8 md:mt-16 mb-6">
-        <h1 className="text-2xl font-bold">Stock Management</h1>
-        <p className="text-muted-foreground">
-          Combined product view across all warehouses.
-        </p>
+
+      <div className="flex items-center justify-between w-full mt-8 md:mt-16 mb-10">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-bold">Stock Management</h1>
+          <p className="text-[hsl(var(--muted-foreground))]">Manage your stocks here.</p>
+        </div>
+        <Button size="icon" onClick={() => {
+          setSelectedAggregatedStock(null);
+          setModalType("updateStock");
+        }}>
+          <PlusIcon />
+        </Button>
       </div>
 
       <DataView<AggregatedStock, unknown>
@@ -255,23 +294,26 @@ export default function StocksPage() {
         open={modalType === "releaseStock"}
         onClose={handleClose}
         onReleased={() => {}}
+        stock={selectedAggregatedStock}
       />
       <ReserveStock
         open={modalType === "reserveStock"}
         onClose={handleClose}
         onReserved={() => {}}
+        stock={selectedAggregatedStock}
       />
       <TransferStock
         open={modalType === "transferStock"}
         onClose={handleClose}
         onTransferred={() => {}}
+        stock={selectedAggregatedStock}
       />
       <UpdateStock
         open={modalType === "updateStock"}
         onClose={handleClose}
         onUpdated={() => {handleStockUpdated();}}
+        stock={selectedAggregatedStock}
       />
-
     </div>
   );
 }

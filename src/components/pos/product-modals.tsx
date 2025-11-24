@@ -11,8 +11,8 @@ import { useToast } from "../ui/use-toast";
 import { Select, SelectOption } from "../ui/select";
 import { POSProduct } from "@/lib/types/pos/products";
 import { Product } from "@/lib/types/inventory/products";
-import { Checkbox } from "../ui/checkbox";
 import { POSProductGroup } from "@/lib/types/pos/product-groups";
+import { Switch } from "../ui/switch";
 
 function ModalShell({
   open,
@@ -200,14 +200,14 @@ export function CreatePOSProductModal({
           searchable
         />
         <span className="grid grid-cols-2">
-          <Checkbox
+          <Switch
             label="Commission Eligible"
             name="commission_eligible"
             checked={form.commission_eligible}
             onChange={(checked) => 
               setForm((prev) => ({ ...prev, commission_eligible: checked }))} 
           />
-          <Checkbox
+          <Switch
             label="Requires Service Employee"
             name="requires_service_employee"
             checked={form.requires_service_employee}
@@ -282,7 +282,7 @@ export function CreatePOSProductModal({
           value={form.color}
           onChange={handleChange}
         />
-        <Checkbox
+        <Switch
           label="Is Active?"
           name="is_active"
           checked={form.is_active}
@@ -442,8 +442,8 @@ export function UpdatePOSProductModal({
           searchable
         />
         <span className="grid grid-cols-2">
-          <Checkbox label="Commission Eligible" name="commission_eligible" checked={form.commission_eligible} onChange={(checked) => setForm((prev) => ({ ...prev, commission_eligible: checked }))} />
-          <Checkbox label="Requires Service Employee" name="requires_service_employee" checked={form.requires_service_employee} onChange={(checked) => setForm((prev) => ({ ...prev, requires_service_employee: checked }))} />
+          <Switch label="Commission Eligible" name="commission_eligible" checked={form.commission_eligible} onChange={(checked) => setForm((prev) => ({ ...prev, commission_eligible: checked }))} />
+          <Switch label="Requires Service Employee" name="requires_service_employee" checked={form.requires_service_employee} onChange={(checked) => setForm((prev) => ({ ...prev, requires_service_employee: checked }))} />
         </span>
         {!form.requires_service_employee && (
           <Select
@@ -477,7 +477,7 @@ export function UpdatePOSProductModal({
         />
         <Input label="Image URL" name="image_url" value={form.image_url} onChange={handleChange} />
         <Input label="Color" name="color" value={form.color} onChange={handleChange} />
-        <Checkbox
+        <Switch
           label="Is Active?"
           name="is_active"
           checked={form.is_active}

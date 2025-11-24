@@ -11,7 +11,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown";
 import { useRouter } from "next/navigation";
 import { Discount } from "@/lib/types/pos/discounts";
-import { formatCurrency } from "@/lib/utils/string";
+import { formatCurrency, toDateTimeMinutes } from "@/lib/utils/string";
 import { CreateDiscountModal, UpdateDiscountModal } from "@/components/pos/discount-modals";
 
 export default function DiscountPage() {
@@ -109,21 +109,21 @@ export default function DiscountPage() {
       cell: ({ row }) => {
         const { valid_from, valid_until } = row.original;
 
-        const toDate = (v: unknown): Date | null => {
-          if (!v) return null;
-          if (v instanceof Date) return v;
-          if (typeof v === "object" && v !== null && "seconds" in v) {
-            const ts = v as { seconds: number };
-            return new Date(ts.seconds * 1000);
-          }
-          return null;
-        };
+        // const toDate = (v: unknown): Date | null => {
+        //   if (!v) return null;
+        //   if (v instanceof Date) return v;
+        //   if (typeof v === "object" && v !== null && "seconds" in v) {
+        //     const ts = v as { seconds: number };
+        //     return new Date(ts.seconds * 1000);
+        //   }
+        //   return null;
+        // };
 
-        const fromDate = toDate(valid_from);
-        const untilDate = toDate(valid_until);
+        const fromDate = toDateTimeMinutes(valid_from);
+        const untilDate = toDateTimeMinutes(valid_until);
 
-        const from = fromDate ? fromDate.toLocaleDateString() : "—";
-        const until = untilDate ? untilDate.toLocaleDateString() : "—";
+        const from = fromDate ? fromDate : "—";
+        const until = untilDate ? untilDate : "—";
 
         return <span>{`${from} → ${until}`}</span>;
       },

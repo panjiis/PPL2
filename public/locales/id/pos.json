@@ -1,0 +1,26 @@
+{
+    "title": "Pusat Point of Sale",
+    "description": "Kelola point of sale anda di sini.",
+    "cards": {
+        "discounts": {
+            "title": "Diskon",
+            "description": "Kelola diskon anda."
+        },
+        "orders": {
+            "title": "Pesanan",
+            "description": "Kelola pesanan anda."
+        },
+        "payments": {
+            "title": "Pembayaran",
+            "description": "Kelola pembayaran anda."
+        },
+        "products": {
+            "title": "Produk",
+            "description": "Kelola produk anda."
+        },
+        "productGroups": {
+            "title": "Grup Produk",
+            "description": "Kelola grup produk anda."
+        }
+    }
+}

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown";
 import { formatCurrency } from "@/lib/utils/string";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { AdvancedSearch } from "@/components/ui/advanced-search";
 
 // 1. Define the data structure
 type Product = {
@@ -99,6 +100,14 @@ const columns: ColumnDef<Product>[] = [
 export default function ProductDisplayPage() {
   const router = useRouter();
 
+  const searchOptions = mockProducts.map(product => ({
+    value: product.id,
+    label: product.name,
+    keywords: [product.category, product.name],
+    group: product.category,
+    icon: <Image src={product.imageUrl} alt={product.name} width={16} height={16} className="rounded-sm" />
+  }));
+
   return (
     <div className="container mx-auto">
       <Breadcrumbs />
@@ -108,9 +117,21 @@ export default function ProductDisplayPage() {
           <h1 className="text-2xl font-bold">Product Management</h1>
           <p className="text-[hsl(var(--muted-foreground))]">Manage your products here.</p>
         </div>
-        <Button size="icon">
-          <PlusIcon />
-        </Button>
+        <div className="flex gap-2">
+          <AdvancedSearch
+            options={searchOptions}
+            placeholder="Search products..."
+            className="w-64"
+            groups={true}
+            showIcons={true}
+            onSelect={(option) => {
+              router.push(`/products/${option.value}`);
+            }}
+          />
+          <Button size="icon">
+            <PlusIcon />
+          </Button>
+        </div>
       </div>
       
       <DataView<Product, unknown>

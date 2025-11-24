@@ -7,6 +7,7 @@ import { SessionProvider } from "@/lib/context/session";
 import { ToastProvider } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarWrapper } from "@/components/sidebar-wrapper";
+import { I18nProvider } from '@/components/i18n-provider';
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -34,17 +35,19 @@ export default function RootLayout({
         className={`${rubik.variable} ${spaceMono.variable} antialiased`}
       >
         <ThemeProvider>
-          <ToastProvider>
-            <ThemeSwitcher className="absolute top-4 right-4 z-100" />
-            <Toaster />
-            <SessionProvider>
-              <div className="flex h-screen">
-                <SidebarWrapper>
-                  {children}
-                </SidebarWrapper>
-              </div>
-            </SessionProvider>
-          </ToastProvider>
+          <I18nProvider>
+            <ToastProvider>
+              <ThemeSwitcher className="absolute top-4 right-4 z-100" />
+              <Toaster position="top-center" />
+              <SessionProvider>
+                <div className="flex h-screen">
+                  <SidebarWrapper>
+                    {children}
+                  </SidebarWrapper>
+                </div>
+              </SessionProvider>
+            </ToastProvider>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,0 +1,66 @@
+{
+  "welcome": "Selamat datang, {{username}}.",
+  "description": "Berikut adalah ringkasan bisnis Anda.",
+  "loadingSession": "Memuat sesi...",
+  "redirectingLogin": "Mengalihkan ke halaman login...",
+  "businessAnalytics": "Analitik Bisnis",
+  "timeRange": {
+    "today": "Hari ini",
+    "thisWeek": "Minggu ini",
+    "thisMonth": "Bulan ini",
+    "thisYear": "Tahun ini",
+    "allTime": "Sepanjang waktu"
+  },
+  "widgets": {
+    "inventory": {
+      "title": "Ikhtisar Inventaris",
+      "totalProducts": "Total produk",
+      "lowStockItems": "Stok rendah",
+      "lowStockTitle": "Produk dengan stok rendah",
+      "andMore": "...dan +{{count}} item lainnya"
+    },
+    "warehouse": {
+      "title": "Ikhtisar Gudang",
+      "active": "Actif",
+      "inactive": "Nonaktif",
+      "noData": "Tidak ada data"
+    },
+    "commission": {
+      "title": "Ikhtisar Komisi",
+      "paid": "Terbayar",
+      "pending": "Tertunda",
+      "rejected": "Ditolak"
+    },
+    "salesReport": {
+      "title": "Kinerja Hari Ini",
+      "description": "Ringkasan pendapatan dan transaksi",
+      "revenue": "Pendapatan",
+      "profit": "Keuntungan"
+    },
+    "revenue": {
+      "title": "Pendapatan Hari Ini",
+      "trend": "Tren"
+    },
+    "topProduct": {
+      "title": "Produk Terbaik Bulan Ini",
+      "name": "Nama Produk",
+      "unitsSold": "Unit Terjual",
+      "noData": "Tidak ada data"
+    },
+    "transactions": {
+      "title": "Transaksi Hari Ini",
+      "value": "Transaksi",
+      "description": "{{count}} barang terjual"
+    },
+    "topPerformers": {
+      "title": "Performa Terbaik Bulan Ini",
+      "noData": "Tidak ada data"
+    },
+    "peakHours": {
+      "title": "Jam Sibuk"
+    }
+  },
+  "breadcrumb": {
+    "home": "Beranda"
+  }
+}

@@ -1,0 +1,22 @@
+{
+    "title": "Pusat Personel",
+    "description": "Kelola personel anda di sini.",
+    "cards": {
+        "commissions": {
+            "title": "Komisi",
+            "description": "Kelola komisi anda."
+        },
+        "employees": {
+            "title": "Karyawan",
+            "description": "Kelola karyawan anda."
+        },
+        "roles": {
+            "title": "Peran",
+            "description": "Kelola peran anda."
+        },
+        "users": {
+            "title": "Pengguna",
+            "description": "Kelola pengguna anda."
+        }
+    }
+}

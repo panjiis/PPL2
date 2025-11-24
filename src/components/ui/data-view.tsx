@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+// CHANGED: Import Image for icons
+import Image from "next/image";
 import {
   Column,
   ColumnDef,
@@ -11,6 +13,7 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
+  Row,
 } from "@tanstack/react-table";
 import {
   TableIcon,
@@ -40,22 +43,27 @@ import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toTitleCase } from "@/lib/utils/string";
 
+import { AdvancedSearch, SearchOption } from "@/components/ui/advanced-search"; // Adjust path
+
 type ViewType = "table" | "list" | "grid";
 
-// ✅ Allow nested keys like "product.product_name"
 interface DataViewProps<TData, TValue> {
   data: TData[];
   columns: ColumnDef<TData, TValue>[];
-  renderListItem: (item: TData) => React.ReactNode;
-  renderGridItem: (item: TData) => React.ReactNode;
-  searchableColumn: keyof TData | string;
+  renderListItem?: (item: TData) => React.ReactNode;
+  renderGridItem?: (item: TData) => React.ReactNode;
+  searchableColumn?: keyof TData | string;
   initialView?: ViewType;
   itemsPerPage?: number;
   onCreate?: () => void;
   caption?: string;
+  enableSelection?: boolean;
+  onSelectionChange?: (selected: TData[]) => void;
+  enableAdvancedSearch?: boolean;
+  searchableGroup?: keyof TData | string; // CHANGED: New prop for grouping
+  searchableIcon?: keyof TData | string; // CHANGED: New prop for icons
 }
 
-// ✅ Utility: safely resolve nested paths like "a.b.c"
 function getNestedValue(obj: unknown, path: string): unknown {
   return path.split(".").reduce((acc, key) => {
     if (acc && typeof acc === "object" && key in acc) {
@@ -63,6 +71,10 @@ function getNestedValue(obj: unknown, path: string): unknown {
     }
     return undefined;
   }, obj);
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
 }
 
 export function DataView<TData, TValue>({
@@ -75,48 +87,122 @@ export function DataView<TData, TValue>({
   itemsPerPage = 10,
   onCreate,
   caption,
+  enableSelection,
+  onSelectionChange,
+  enableAdvancedSearch = false,
+  searchableGroup, // CHANGED
+  searchableIcon, // CHANGED
 }: DataViewProps<TData, TValue>) {
   const [viewType, setViewType] = useState<ViewType>(initialView);
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = useState({});
 
-  const searchKey = useMemo(() => String(searchableColumn), [searchableColumn]);
+  const searchKey = useMemo(() => 
+    searchableColumn ? String(searchableColumn) : null, 
+    [searchableColumn]
+  );
+  // CHANGED: Add groupKey and iconKey
+  const groupKey = useMemo(() => 
+    searchableGroup ? String(searchableGroup) : null,
+    [searchableGroup]
+  );
+  const iconKey = useMemo(() => 
+    searchableIcon ? String(searchableIcon) : null,
+    [searchableIcon]
+  );
 
-  // const table = useReactTable({
-  //   data,
-  //   columns,
-  //   state: { sorting, globalFilter },
-  //   onSortingChange: setSorting,
-  //   onGlobalFilterChange: setGlobalFilter,
-
-  //   // ✅ Enhanced filter function that supports nested properties
-  //   globalFilterFn: (row, _columnId, filterValue) => {
-  //     const raw = row.original as Record<string, unknown>;
-  //     const value = getNestedValue(raw, searchKey);
-  //     if (value === undefined || value === null) return false;
-  //     return String(value).toLowerCase().includes(String(filterValue).toLowerCase());
-  //   },
-
-  //   getCoreRowModel: getCoreRowModel(),
-  //   getFilteredRowModel: getFilteredRowModel(),
-  //   getSortedRowModel: getSortedRowModel(),
-  //   getPaginationRowModel: getPaginationRowModel(),
-  //   initialState: { pagination: { pageSize: itemsPerPage } },
-  // });
-
+  const searchLabel = useMemo(() => {
+    return searchKey ? `by ${toTitleCase(searchKey)}` : "all fields";
+  }, [searchKey]);
+  
   const safeData = useMemo(() => data ?? [], [data]);
+
+  // CHANGED: Simplified logic
+  const useAdvancedSearch = enableAdvancedSearch;
+  const hasGroups = useAdvancedSearch && !!groupKey && !!searchKey;
+  const showIcons = useAdvancedSearch && !!iconKey && !!searchKey;
+
+  // CHANGED: Updated advancedSearchOptions to support groups and icons
+  const advancedSearchOptions = useMemo((): SearchOption[] => {
+    if (!useAdvancedSearch) return [];
+
+    const uniqueValues = new Map<string, SearchOption>();
+
+    (safeData ?? []).forEach((item) => {
+      if (searchKey) {
+        // **Grouped/Specific Search Mode (Requires searchKey)**
+        const value = getNestedValue(item, searchKey);
+        const stringValue = (value !== undefined && value !== null) ? String(value) : "";
+        
+        if (stringValue.trim() && !uniqueValues.has(stringValue.toLowerCase())) {
+          const group = groupKey ? getNestedValue(item, groupKey) : undefined;
+          const iconUrl = iconKey ? getNestedValue(item, iconKey) : undefined;
+          
+          uniqueValues.set(stringValue.toLowerCase(), {
+            value: stringValue,
+            label: stringValue,
+            group: group ? String(group) : undefined,
+            icon: (showIcons && iconUrl) ? (
+              <Image 
+                src={String(iconUrl)} 
+                alt={stringValue} 
+                width={16} 
+                height={16} 
+                className="rounded-sm" 
+              />
+            ) : undefined,
+          });
+        }
+      } else {
+        // **Global Search Mode (No searchKey)**
+        if (isRecord(item)) {
+          for (const key in item) {
+            const value = item[key];
+            if (typeof value === "string" || typeof value === "number") {
+              const stringValue = String(value);
+              if (stringValue.trim() && !uniqueValues.has(stringValue.toLowerCase())) {
+                uniqueValues.set(stringValue.toLowerCase(), {
+                  value: stringValue,
+                  label: stringValue,
+                });
+              }
+            }
+          }
+        }
+      }
+    });
+    return Array.from(uniqueValues.values());
+  }, [safeData, useAdvancedSearch, searchKey, groupKey, iconKey, showIcons]);
 
   const table = useReactTable({
     data: safeData,
     columns,
-    state: { sorting, globalFilter },
+    state: { sorting, globalFilter, ...(enableSelection ? { rowSelection } : {}), },
+    enableRowSelection: !!enableSelection,
+    onRowSelectionChange: enableSelection ? setRowSelection : undefined,
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, _columnId, filterValue) => {
-      const raw = row.original as Record<string, unknown>;
-      const value = getNestedValue(raw, searchKey);
-      if (value === undefined || value === null) return false;
-      return String(value).toLowerCase().includes(String(filterValue).toLowerCase());
+    
+    globalFilterFn: (row: Row<TData>, _columnId: string, filterValue: string) => {
+      const lowerCaseFilter = String(filterValue).toLowerCase();
+
+      if (searchKey) {
+        // **Specified Column Search**
+        const raw = row.original as Record<string, unknown>;
+        const value = getNestedValue(raw, searchKey);
+        if (value === undefined || value === null) return false;
+        
+        return String(value).toLowerCase().includes(lowerCaseFilter);
+      } else {
+        // **Global Search**
+        return row.getAllCells().some(cell => {
+          const value = cell.getValue();
+          if (value === undefined || value === null) return false;
+          
+          return String(value).toLowerCase().includes(lowerCaseFilter);
+        });
+      }
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -127,6 +213,30 @@ export function DataView<TData, TValue>({
 
   const rows = table.getRowModel()?.rows ?? [];
   const paginatedData = rows.map((r) => r.original);
+
+  const selectedRows = useMemo(() => {
+    return enableSelection
+      ? table.getSelectedRowModel().rows.map((r) => r.original)
+      : [];
+  }, [enableSelection, table]);
+
+
+  const prevSelectedRef = React.useRef<TData[] | null>(null);
+
+  React.useEffect(() => {
+    if (!enableSelection || !onSelectionChange) return;
+
+    const prev = prevSelectedRef.current;
+    const hasChanged =
+      !prev ||
+      prev.length !== selectedRows.length ||
+      prev.some((r, i) => r !== selectedRows[i]);
+
+    if (hasChanged) {
+      prevSelectedRef.current = selectedRows;
+      onSelectionChange(selectedRows);
+    }
+  }, [enableSelection, selectedRows, onSelectionChange]);
 
   const handleViewChange = (v: string | string[]) => {
     if (typeof v === "string" && v) setViewType(v as ViewType);
@@ -139,7 +249,7 @@ export function DataView<TData, TValue>({
   const renderSortIcon = (column: Column<TData, unknown>) => {
     const sorted = column.getIsSorted();
     const firstValue = table.getRowModel().rows[0]?.getValue(column.id);
-    const type = typeof firstValue === "number" ? "number" : "string";
+    const type = typeof firstValue === 'number' ? "number" : "string";
     if (sorted === "asc")
       return type === "string" ? (
         <ArrowUpAZ className="h-4 w-4" />
@@ -159,7 +269,7 @@ export function DataView<TData, TValue>({
     <div className="flex gap-2 mb-2 flex-wrap">
       {table
         .getHeaderGroups()[0]
-        ?.headers.filter((h) => h.column.id.toLowerCase() !== "actions")
+        ?.headers.filter((h) => h.column.id.toLowerCase() !== "actions" && h.column.id.toLowerCase() !== "select")
         .map((h) => (
           <Button
             key={h.id}
@@ -185,7 +295,7 @@ export function DataView<TData, TValue>({
 
     switch (viewType) {
       case "grid":
-        return (
+        return renderGridItem ? (
           <div className="flex flex-col">
             {renderSortableToolbar()}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -205,9 +315,9 @@ export function DataView<TData, TValue>({
               )}
             </div>
           </div>
-        );
+        ) : null;
       case "list":
-        return (
+        return renderListItem ? (
           <div className="flex flex-col">
             {renderSortableToolbar()}
             <div className="flex flex-col gap-3">
@@ -227,7 +337,7 @@ export function DataView<TData, TValue>({
               )}
             </div>
           </div>
-        );
+        ) : null;
       default:
         return (
           <div className="rounded-md border border-[hsl(var(--border))]">
@@ -235,6 +345,15 @@ export function DataView<TData, TValue>({
               <TableHeader>
                 {table.getHeaderGroups().map((hg) => (
                   <TableRow key={hg.id}>
+                    {enableSelection && (
+                      <TableHead className="w-12">
+                        <input
+                          type="checkbox"
+                          checked={table.getIsAllPageRowsSelected()}
+                          onChange={table.getToggleAllPageRowsSelectedHandler()}
+                        />
+                      </TableHead>
+                    )}
                     {hg.headers.map((h) => (
                       <TableHead key={h.id}>
                         {h.isPlaceholder ? null : h.column.id !== "actions" ? (
@@ -256,7 +375,20 @@ export function DataView<TData, TValue>({
               </TableHeader>
               <TableBody>
                 {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow
+                      key={row.id}
+                      data-state={enableSelection && row.getIsSelected() ? "selected" : undefined}
+                    >
+                    {enableSelection && (
+                      <TableCell className="w-12">
+                        <input
+                          type="checkbox"
+                          checked={row.getIsSelected()}
+                          disabled={!row.getCanSelect()}
+                          onChange={row.getToggleSelectedHandler()}
+                        />
+                      </TableCell>
+                    )}
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -280,7 +412,7 @@ export function DataView<TData, TValue>({
                 )}
               </TableBody>
               <TableCaption>
-                {caption ?? `List of ${toTitleCase(searchKey)} in system.`}
+                {caption ?? `List of items in system.`}
               </TableCaption>
             </Table>
           </div>
@@ -291,12 +423,28 @@ export function DataView<TData, TValue>({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex gap-4 items-center justify-between">
-        <Input
-          placeholder={`Search by ${toTitleCase(searchKey)}...`}
-          value={globalFilter ?? ""}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-sm"
-        />
+        
+        {/* === CHANGED: Updated props passed to AdvancedSearch === */}
+        {useAdvancedSearch ? (
+          <AdvancedSearch
+            options={advancedSearchOptions}
+            placeholder={`Search ${searchLabel}...`}
+            className="max-w-sm w-full"
+            value={globalFilter ?? ""}
+            onValueChange={setGlobalFilter}
+            groups={hasGroups}
+            showIcons={showIcons}
+          />
+        ) : (
+          <Input
+            placeholder={`Search ${searchLabel}...`}
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="max-w-sm"
+          />
+        )}
+        {/* === END OF CHANGED PART === */}
+
         <ToggleGroup
           type="single"
           variant="outline"
@@ -306,12 +454,16 @@ export function DataView<TData, TValue>({
           <ToggleGroupItem value="table" aria-label="Table view">
             <TableIcon className="h-4 w-4" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label="List view">
-            <List className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="grid" aria-label="Grid view">
-            <LayoutGrid className="h-4 w-4" />
-          </ToggleGroupItem>
+          {renderListItem && (
+            <ToggleGroupItem value="list" aria-label="List view">
+              <List className="h-4 w-4" />
+            </ToggleGroupItem>
+          )}
+          {renderGridItem && (
+            <ToggleGroupItem value="grid" aria-label="Grid view">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+          )}
         </ToggleGroup>
       </div>
 

@@ -1,0 +1,26 @@
+{
+    "title": "Pusat Inventaris",
+    "description": "Kelola inventaris Anda di sini.",
+    "cards": {
+        "products": {
+            "title": "Produk",
+            "description": "Kelola produk Anda."
+        },
+        "productTypes": {
+            "title": "Tipe Produk",
+            "description": "Kelola tipe produk Anda."
+        },
+        "stocks": {
+            "title": "Stok",
+            "description": "Kelola stok Anda."
+        },
+        "suppliers": {
+            "title": "Pemasok",
+            "description": "Kelola pemasok Anda."
+        },
+        "warehouses": {
+            "title": "Gudang",
+            "description": "Kelola gudang Anda."
+        }
+    }
+}

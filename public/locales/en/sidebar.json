@@ -1,0 +1,28 @@
+{
+  "sidebar": {
+    "home": "Home",
+    "inventory": "Inventory",
+    "products": "Products",
+    "productTypes": "Product Types",
+    "stocks": "Stocks",
+    "stockMovements": "Stock Movements",
+    "suppliers": "Suppliers",
+    "warehouses": "Warehouses",
+    "personnel": "Personnel",
+    "commissions": "Commissions",
+    "employees": "Employees",
+    "roles": "Roles",
+    "users": "Users",
+    "pos": "POS",
+    "discounts": "Discounts",
+    "orders": "Orders",
+    "paymentTypes": "Payment Types",
+    "productGroups": "Product Groups",
+    "settings": "Settings",
+    "appearance": "Appearance",
+    "openMenu": "Open menu",
+    "logout": "Logout",
+    "changeToIndonesian": "Change to Indonesian",
+    "changeToEnglish": "Change to English"
+  }
+}

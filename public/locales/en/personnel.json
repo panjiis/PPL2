@@ -1,0 +1,22 @@
+{
+    "title": "Personnel Hub",
+    "description": "Manage your personnel here.",
+    "cards": {
+        "commissions": {
+            "title": "Commissions",
+            "description": "Manage your commissions."
+        },
+        "employees": {
+            "title": "Employees",
+            "description": "Manage your employees."
+        },
+        "roles": {
+            "title": "Roles",
+            "description": "Manage your roles."
+        },
+        "users": {
+            "title": "Users",
+            "description": "Manage your users."
+        }
+    }
+}

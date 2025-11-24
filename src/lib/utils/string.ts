@@ -4,13 +4,37 @@ export const toSentenceCase = (str: string) => {
     return result.charAt(0).toUpperCase() + result.slice(1);
 };
 
-export const toTitleCase = (str: string) => {
-    if (!str) return "";
-    return str
-        .replace(/_/g, " ")
-        .split(" ")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+interface ToTitleCaseOptions {
+  showParentPath?: boolean; // default false
+  separator?: string;       // default " → "
+}
+
+export const toTitleCase = (
+  str: string,
+  options: ToTitleCaseOptions = {}
+) => {
+  if (!str) return "";
+
+  const { showParentPath = false, separator = " → " } = options;
+  const segments = str.split(".");
+
+  // Convert each segment to title case
+  const titledSegments = segments.map((segment) =>
+    segment
+      .replace(/_/g, " ")
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+  );
+
+  if (showParentPath && segments.length > 1) {
+    // Show all but last as prefix + last as main
+    const parentPath = titledSegments.slice(0, -1).join(separator);
+    return `${parentPath}${separator}${titledSegments[titledSegments.length - 1]}`;
+  }
+
+  // Only show last segment
+  return titledSegments[titledSegments.length - 1];
 };
 
 export function formatCurrency(value: number, locale = "id-ID", currency = "IDR"): string {
@@ -51,7 +75,7 @@ export function toDateTimeMinutes(value: unknown): string | null {
 export function toDateTimeSeconds(value: unknown): string | null {
   const d = toDate(value);
   if (!d) return null;
-  const iso = d.toISOString();
+  const iso = d.toLocaleString();
   return iso.substring(0, 19).replace("T", " "); // YYYY-MM-DD HH:MM:SS
 }
 
