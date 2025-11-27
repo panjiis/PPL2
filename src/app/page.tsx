@@ -241,8 +241,8 @@ export default function Home() {
           <TopProductWidget
             data={{
               title: "This Month's Top Product",
-              name: topProducts[0]?.product_id
-                ? `Product #${topProducts[0].product_id}`
+              name: topProducts[0]?.product_code
+                ? `Product #${topProducts[0].product_code}`
                 : "N/A",
 
               unitsSold: topProducts[0]?.net_sales != null

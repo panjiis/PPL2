@@ -6,7 +6,7 @@ import { BASE_URL } from "../config";
 
 export async function fetchDashboard(token: string): Promise<DashboardResponse> {
   const currentDate = new Date().toISOString().split("T")[0];
-  const res = await fetch(`${BASE_URL}/analytics/dashboard?date=${currentDate}`, {
+  const res = await fetch(`${BASE_URL}/analytics/dashboard?date=2025-11-12`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

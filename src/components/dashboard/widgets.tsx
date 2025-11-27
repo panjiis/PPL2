@@ -20,7 +20,7 @@ interface InventoryData {
 
 interface CommissionData {
   paid: string | number;
-  pending: string | number;
+  pending: string | number | undefined;
   rejected: string | number;
 }
 
@@ -71,7 +71,7 @@ type HourlyData = {
 };
 
 type PeakHoursDay = {
-  day_of_week: string;
+  day_of_week: number;
   hourly_data: HourlyData[];
 };
 
@@ -421,17 +421,23 @@ export function PeakHoursWidget({
   const { t, i18n } = useTranslation("dashboard");
 
   // Get current day in English to match your data
-  const todayIndex = new Date().getDay(); // 0=Sunday, 6=Saturday
-  const englishWeekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  const today = englishWeekdays[todayIndex];
+  // const todayIndex = new Date().getDay(); // 0=Sunday, 6=Saturday
+  // const englishWeekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  // const today = englishWeekdays[todayIndex];
+  const today = new Date().getDay();
+  const todayNormalized = today === 0 ? 7 : today;
 
   // Find initial day data
+  // const initialDay =
+  //   data.find(d => d.day_of_week.toLowerCase() === today.toLowerCase())?.day_of_week
+  //   || data[0]?.day_of_week
+  //   || "";
   const initialDay =
-    data.find(d => d.day_of_week.toLowerCase() === today.toLowerCase())?.day_of_week
-    || data[0]?.day_of_week
-    || "";
+    data.find(d => d.day_of_week === todayNormalized)?.day_of_week ??
+    data[0]?.day_of_week ??
+    0;
 
-  const [selectedDay, setSelectedDay] = useState<string>(initialDay);
+  const [selectedDay, setSelectedDay] = useState<number>(initialDay);
 
   const dayData = useMemo(
     () => data.find(d => d.day_of_week === selectedDay)?.hourly_data || [],
@@ -444,13 +450,19 @@ export function PeakHoursWidget({
   }));
 
   // Get localized short day name
-  const getShortDay = (day: string) => {
-    const index = englishWeekdays.findIndex(d => d.toLowerCase() === day.toLowerCase());
-    if (index === -1) return day;
-    // Use a date with that weekday (first week of 1970)
-    const refDate = new Date(1970, 0, 4 + index); // Jan 4, 1970 = Sunday
-    return refDate.toLocaleDateString(i18n.language, { weekday: "short" });
+  // const getShortDay = (day: string) => {
+  //   const index = englishWeekdays.findIndex(d => d.toLowerCase() === day.toLowerCase());
+  //   if (index === -1) return day;
+  //   // Use a date with that weekday (first week of 1970)
+  //   const refDate = new Date(1970, 0, 4 + index); // Jan 4, 1970 = Sunday
+  //   return refDate.toLocaleDateString(i18n.language, { weekday: "short" });
+  // };
+  const getShortDay = (dayNum: number) => {
+    // Sunday of 1970-01-04 + dayNum
+    const ref = new Date(1970, 0, 4 + dayNum);
+    return ref.toLocaleDateString(i18n.language, { weekday: "short" });
   };
+
 
   return (
     <Card className="h-full">
@@ -463,6 +475,16 @@ export function PeakHoursWidget({
 
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-2">
+          {/* {data.map(d => (
+            <Button
+              key={d.day_of_week}
+              size="sm"
+              variant={selectedDay === d.day_of_week ? "default" : "outline"}
+              onClick={() => setSelectedDay(d.day_of_week)}
+            >
+              {getShortDay(d.day_of_week)}
+            </Button>
+          ))} */}
           {data.map(d => (
             <Button
               key={d.day_of_week}

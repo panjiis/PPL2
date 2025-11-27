@@ -7,7 +7,7 @@ export const HourlyRevenueSchema = z.object({
 });
 
 export const PeakHoursDaySchema = z.object({
-  day_of_week: z.string(), // "Monday"
+  day_of_week: z.number(), // "Monday"
   hourly_data: z.array(HourlyRevenueSchema).default([]),
 });
 

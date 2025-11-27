@@ -14,7 +14,7 @@ export const LowStockAlertSchema = z.union([
 ]);
 
 export const TopProductSchema = z.object({
-  product_id: z.number(),
+  product_code: z.string(),
   net_sales: z.string(),
 });
 
@@ -33,7 +33,7 @@ export const DashboardDataSchema = z.object({
   top_products_today: z.array(TopProductSchema).default([]).optional(),
   top_performers_today: z.array(TopPerformerSchema).default([]).optional(),
   low_stock_alerts: z.array(LowStockAlertSchema).default([]).optional(),
-  pending_commissions_count: z.number(),
+  pending_commissions_count: z.number().optional(),
 });
 
 export const DashboardResponseSchema = z.object({
