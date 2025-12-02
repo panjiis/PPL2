@@ -80,13 +80,17 @@ export default function CommissionsPage() {
     const fetchData = async () => {
       try {
         const data = await fetchCommissions(session.token);
-        setCommissions(data);
+
+        // hard guard — normalize invalid values
+        setCommissions(Array.isArray(data) ? data : []);
       } catch (err) {
         toast({
           variant: "danger",
           title: "Failed to fetch commissions",
           description: err instanceof Error ? err.message : "Unknown error",
         });
+
+        setCommissions([]); // ensure non-null on failure
       }
     };
 

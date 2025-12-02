@@ -23,12 +23,14 @@ export default function StocksPage() {
 
   useEffect(() => {
     if (isLoading || !session) return;
+
     (async () => {
       try {
         const fetched = await fetchStocks(session.token);
-        setStocks(fetched);
+        setStocks(Array.isArray(fetched) ? fetched : []);
       } catch (err) {
         console.error(err);
+        setStocks([]); // fallback for safety
       }
     })();
   }, [session, isLoading]);
