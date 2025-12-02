@@ -92,13 +92,12 @@ export default function ProductPage() {
       header: "Product Group",
       meta: { type: "string" as const },
       cell: ({ row }) => {
-        const productGroup = row.original.product_group.product_group_name || "N/A";
+        const group = row.original.product_group;
+        const name = group?.product_group_name ?? "N/A";
 
         return (
-          <Badge
-            variant={"secondary"}
-          >
-            {productGroup}
+          <Badge variant="secondary">
+            {name}
           </Badge>
         );
       },
