@@ -200,8 +200,16 @@ export function InventoryWidget({
   );
 }
 
-export function WarehouseWidget({ warehouses, router }: { warehouses: Warehouse[], router: AppRouterInstance }) {
+export function WarehouseWidget({
+  warehouses,
+  router,
+}: {
+  warehouses: Warehouse[] | null | undefined;
+  router: AppRouterInstance;
+}) {
   const { t } = useTranslation("dashboard");
+
+  const list = Array.isArray(warehouses) ? warehouses : [];
 
   return (
     <Card className="h-full">
@@ -209,30 +217,49 @@ export function WarehouseWidget({ warehouses, router }: { warehouses: Warehouse[
         <CardTitle className="flex items-center gap-2 text-base md:text-2xl">
           <WarehouseIcon className="shrink-0" />
           {t("widgets.warehouse.title")}
-          <Button variant="outline" size="icon" className="ml-auto gap-2" onClick={() => router.push('/inventory/warehouses')}>
+          <Button
+            variant="outline"
+            size="icon"
+            className="ml-auto gap-2"
+            onClick={() => router.push('/inventory/warehouses')}
+          >
             <ExternalLinkIcon />
           </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <ul className="space-y-2 text-sm">
-          {warehouses.length > 0 ? (
-            warehouses.map((warehouse) => (
-              <li key={warehouse.warehouse_code} className="flex justify-between">
+          {list.length > 0 ? (
+            list.map((warehouse) => (
+              <li
+                key={warehouse.warehouse_code}
+                className="flex justify-between"
+              >
                 <span>{warehouse.warehouse_name}</span>
-                <span className={`font-medium ${warehouse.is_active ? 'text-[hsl(var(--success-background))]' : 'text-[hsl(var(--danger-background))]'}`}>
-                  {warehouse.is_active ? t("widgets.warehouse.active") : t("widgets.warehouse.inactive")}
+                <span
+                  className={`font-medium ${
+                    warehouse.is_active
+                      ? 'text-[hsl(var(--success-background))]'
+                      : 'text-[hsl(var(--danger-background))]'
+                  }`}
+                >
+                  {warehouse.is_active
+                    ? t("widgets.warehouse.active")
+                    : t("widgets.warehouse.inactive")}
                 </span>
               </li>
             ))
           ) : (
-            <p className="text-center text-[hsl(var(--muted-foreground))]">{t("widgets.warehouse.noData")}</p>
+            <p className="text-center text-[hsl(var(--muted-foreground))]">
+              {t("widgets.warehouse.noData")}
+            </p>
           )}
         </ul>
       </CardContent>
     </Card>
   );
 }
+
 
 export function CommissionWidget({ data, router }: { data: CommissionData, router: AppRouterInstance }) {
   return (
