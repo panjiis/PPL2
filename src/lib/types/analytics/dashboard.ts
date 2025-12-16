@@ -6,7 +6,7 @@ export const LowStockAlertSchema = z.union([
     product_id: z.number().optional(),
     product_name: z.string().optional(),
     name: z.string().optional(),
-    current_stock: z.number().optional(),
+    remaining_quantity: z.number().optional(),
     left: z.number().optional(),
     limit: z.number().optional(),
     limit_value: z.number().optional(),

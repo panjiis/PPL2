@@ -175,7 +175,7 @@ export default function Home() {
 
           return {
             name: alert.product_name ?? alert.name ?? `Product ${alert.product_id ?? ""}`.trim(),
-            stock: alert.current_stock ?? alert.left ?? null,
+            stock: alert.remaining_quantity ?? alert.left ?? null,
             limit: alert.limit ?? alert.limit_value ?? null,
           };
         };
