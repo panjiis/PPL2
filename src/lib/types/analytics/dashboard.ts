@@ -20,6 +20,7 @@ export const TopProductSchema = z.object({
 
 export const TopPerformerSchema = z.object({
   employee_id: z.number(),
+  employee_name: z.string(),
   total_sales: z.string(),
 });
 

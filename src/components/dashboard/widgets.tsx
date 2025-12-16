@@ -55,8 +55,8 @@ interface TransactionsWidgetProps {
 
 type Performer = {
   employee_id: number;
+  employee_name: string;
   total_sales: string | number;
-  name?: string;
 }
 
 type LeaderboardData = {
@@ -420,7 +420,7 @@ export function TopPerformersWidget({
               >
                 <div className="flex items-center gap-2">
                   {rankIcon(i + 1)}
-                  <Button variant="link" size="sm" className="p-0" onClick={() => router.push(`/personnel/employees/${p.employee_id}`)}>{p.name || `Employee ${p.employee_id}`}</Button>
+                  <Button variant="link" size="sm" className="p-0" onClick={() => router.push(`/personnel/employees/${p.employee_id}`)}>{`${p.employee_name}`}</Button>
                 </div>
                 <span className="font-medium text-primary">
                   {formatCurrency(Number(p.total_sales))}
