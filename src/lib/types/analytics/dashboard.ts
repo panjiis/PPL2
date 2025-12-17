@@ -15,6 +15,8 @@ export const LowStockAlertSchema = z.union([
 
 export const TopProductSchema = z.object({
   product_code: z.string(),
+  product_name: z.string(),
+  quantity_sold: z.number(),  
   net_sales: z.string(),
 });
 

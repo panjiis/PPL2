@@ -68,7 +68,7 @@ export function CreateDiscountModal({
     min_quantity: 0,
     buy_quantity: 0,
     get_quantity: 0,
-    max_usage_per_transaction: 0,
+    max_usage_per_transaction: "",
     valid_from: null as Date | null,
     valid_until: null as Date | null,
   });
@@ -141,7 +141,7 @@ export function CreateDiscountModal({
         valid_until: toApiISOString(form.valid_until) || undefined,
       };
 
-      if (payload.max_usage_per_transaction === 0) {
+      if (payload.max_usage_per_transaction === "") {
         delete payload.max_usage_per_transaction;
       }
 
@@ -170,7 +170,7 @@ export function CreateDiscountModal({
         min_quantity: 0,
         buy_quantity: 0,
         get_quantity: 0,
-        max_usage_per_transaction: 0,
+        max_usage_per_transaction: "",
         valid_from: null,
         valid_until: null,
       });
@@ -245,7 +245,7 @@ export function CreateDiscountModal({
         <Input
           label="Max Usage Per Transaction"
           name="max_usage_per_transaction"
-          type="number"
+          variant="currency"
           value={form.max_usage_per_transaction}
           onChange={handleChange}
         />
@@ -312,7 +312,7 @@ export function UpdateDiscountModal({
     min_quantity: 0,
     buy_quantity: 0,
     get_quantity: 0,
-    max_usage_per_transaction: 0,
+    max_usage_per_transaction: "",
     valid_from: null as Date | null,
     valid_until: null as Date | null,
   });
@@ -328,7 +328,7 @@ export function UpdateDiscountModal({
         min_quantity: discount.min_quantity || 0,
         buy_quantity: discount.buy_quantity || 0,
         get_quantity: discount.get_quantity || 0,
-        max_usage_per_transaction: discount.max_usage_per_transaction || 0,
+        max_usage_per_transaction: discount.max_usage_per_transaction || "",
         valid_from: toDate(discount.valid_from),
         valid_until: toDate(discount.valid_until),
       });
@@ -382,7 +382,7 @@ export function UpdateDiscountModal({
         valid_until: toApiISOString(form.valid_until) || undefined,
       };
 
-      if (payload.max_usage_per_transaction === 0) {
+      if (payload.max_usage_per_transaction === "") {
         delete payload.max_usage_per_transaction;
       }
 
@@ -469,7 +469,7 @@ export function UpdateDiscountModal({
           </>
         )}
         <Input label="Min. Quantity" name="min_quantity" type="number" value={form.min_quantity} onChange={handleChange} />
-        <Input label="Max Usage Per Transaction" name="max_usage_per_transaction" type="number" value={form.max_usage_per_transaction} onChange={handleChange} />
+        <Input label="Max Usage Per Transaction" name="max_usage_per_transaction" variant="currency" value={form.max_usage_per_transaction} onChange={handleChange} />
         <DatePicker
           label="Valid From"
           mode="single"

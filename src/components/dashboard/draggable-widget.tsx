@@ -30,7 +30,7 @@ export function DraggableWidget({ id, children, gridClass = '' }: DraggableWidge
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative ${gridClass}`}
+      className={`relative h-full w-full ${gridClass}`}
     >
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 z-10 cursor-grab active:cursor-grabbing touch-none"
@@ -41,7 +41,11 @@ export function DraggableWidget({ id, children, gridClass = '' }: DraggableWidge
             <GripHorizontal size={16} className="opacity-45 hover:opacity-100 transition-opacity" />
         </Button>
       </div>
-      <div className={`${isDragging ? 'ring-2 ring-primary ring-offset-2' : ''} rounded-lg transition-all`}>
+      <div
+        className={`${
+          isDragging ? 'ring-2 ring-primary ring-offset-2' : ''
+        } rounded-lg transition-all h-full`}
+      >
         {children}
       </div>
     </div>

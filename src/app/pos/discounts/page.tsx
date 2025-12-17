@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { DataView } from "@/components/ui/data-view";
 import { useSession } from "@/lib/context/session";
 import { deleteDiscountById, fetchDiscounts } from "@/lib/utils/api";
-import { MoreHorizontal, PlusIcon } from "lucide-react";
+import { CheckCircleIcon, MoreHorizontal, PlusIcon, XCircleIcon } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown";
 import { useRouter } from "next/navigation";
 import { Discount } from "@/lib/types/pos/discounts";
 import { formatCurrency, toDateTimeMinutes } from "@/lib/utils/string";
 import { CreateDiscountModal, UpdateDiscountModal } from "@/components/pos/discount-modals";
+import { Badge } from "@/components/ui/badge";
 
 export default function DiscountPage() {
   const { session, isLoading } = useSession();
@@ -73,7 +74,16 @@ export default function DiscountPage() {
     { 
       accessorKey: "max_usage_per_transaction",
       header: "Max Usage per Transaction",
-      meta: { type: "number" as const },
+      meta: { type: "string" as const },
+      cell: ({ row }) => {
+        const value = row.original.max_usage_per_transaction;
+
+        if (value == null || value === "") {
+          return <div>No Limit</div>;
+        }
+
+        return <div>{formatCurrency(Number(value))}</div>;
+      },
     },
     {
       accessorKey: "discount_value",
@@ -126,6 +136,40 @@ export default function DiscountPage() {
         const until = untilDate ? untilDate : "—";
 
         return <span>{`${from} → ${until}`}</span>;
+      },
+    },
+    {
+      accessorKey: "is_active",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.original.is_active;
+        let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+        let statusStyle = ""
+        let icon = null;
+        let label = ""
+        
+        switch(status) {
+          case true:
+            variant = "secondary";
+            icon = <CheckCircleIcon size={12} />;
+            label = "Active"
+            statusStyle = "bg-[hsl(var(--success-background))] hover:bg-[hsl(var(--success-background))]/80 text-[hsl(var(--success-foreground))]";
+            break;
+          default:
+            variant = "destructive";
+            icon = <XCircleIcon size={12} />;
+            label = "Inactive"
+        }
+        
+        return (
+          <Badge 
+            variant={variant}
+            className={statusStyle} 
+            icon={icon}
+          >
+            {label}
+          </Badge>
+        );
       },
     },
     {

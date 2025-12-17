@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { DataView } from "@/components/ui/data-view";
 import { useSession } from "@/lib/context/session";
 import { fetchPaymentTypes } from "@/lib/utils/api";
-import { MoreHorizontal, PlusIcon } from "lucide-react";
+import { CheckCircleIcon, MoreHorizontal, PlusIcon, XCircleIcon } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown";
 import { useRouter } from "next/navigation";
 import { PaymentType } from "@/lib/types/pos/payment-types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CreatePaymentTypeModal, UpdatePaymentTypeModal } from "@/components/pos/payment-type-modals";
+import { Badge } from "@/components/ui/badge";
 
 export default function PaymentTypePage() {
   const { session, isLoading } = useSession();
@@ -67,11 +68,36 @@ export default function PaymentTypePage() {
     },
     {
       accessorKey: "is_active",
-      header: "Is Active?",
-      meta: { type: "boolean" as const },
-      cell: ({ getValue }) => {
-        const value = getValue<boolean>();
-        return <Checkbox checked={!!value} disabled />;
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.original.is_active;
+        let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+        let statusStyle = ""
+        let icon = null;
+        let label = ""
+        
+        switch(status) {
+          case true:
+            variant = "secondary";
+            icon = <CheckCircleIcon size={12} />;
+            label = "Active"
+            statusStyle = "bg-[hsl(var(--success-background))] hover:bg-[hsl(var(--success-background))]/80 text-[hsl(var(--success-foreground))]";
+            break;
+          default:
+            variant = "destructive";
+            icon = <XCircleIcon size={12} />;
+            label = "Inactive"
+        }
+        
+        return (
+          <Badge 
+            variant={variant}
+            className={statusStyle} 
+            icon={icon}
+          >
+            {label}
+          </Badge>
+        );
       },
     },
     {

@@ -12,9 +12,10 @@ export const DiscountSchema = z.object({
   buy_quantity: z.number().optional(),
   get_quantity: z.number().optional(),
   min_quantity: z.number(),
-  max_usage_per_transaction: z.number().optional(),
+  max_usage_per_transaction: z.string().optional(),
   valid_from: z.union([z.date(), TimestampSchema]).optional(),
   valid_until: z.union([z.date(), TimestampSchema]).optional(),
+  is_active: z.boolean(),
   created_at: TimestampSchema,
   updated_at: TimestampSchema,
 });

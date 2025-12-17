@@ -65,7 +65,7 @@ export default function Home() {
 
   const [bottomWidgets, setBottomWidgets] = useState<WidgetLayout[]>([
     { id: 'peakHours', gridClass: 'lg:col-span-2 lg:row-span-2' },
-    { id: 'revenue', gridClass: '' },
+    { id: 'revenue', gridClass: 'lg:col-span-2' },
     { id: 'topProduct', gridClass: '' },
     { id: 'transactions', gridClass: '' },
   ]);
@@ -241,13 +241,17 @@ export default function Home() {
           <TopProductWidget
             data={{
               title: "This Month's Top Product",
-              name: topProducts[0]?.product_code
-                ? `Product #${topProducts[0].product_code}`
+              name: topProducts[0]?.product_name
+                ? `${topProducts[0].product_name}`
                 : "N/A",
 
-              unitsSold: topProducts[0]?.net_sales != null
-                ? formatCurrency(Number(topProducts[0].net_sales))
+              unitsSold: topProducts[0]?.quantity_sold != null
+                ? `${topProducts[0].quantity_sold} units sold`
                 : "N/A",
+              // Net Sales
+              // unitsSold: topProducts[0]?.net_sales != null
+              //   ? formatCurrency(Number(topProducts[0].net_sales))
+              //   : "N/A",
             }}
           />
         );
@@ -281,7 +285,7 @@ export default function Home() {
             router={router}
           />
         );
-        
+      
     }
   };
 
@@ -337,10 +341,33 @@ export default function Home() {
           <h2 className="text-2xl font-bold tracking-tight">Business Analytics</h2>
         </div>
 
-        <SortableContext items={bottomWidgets.map(w => w.id)} strategy={rectSortingStrategy}>
+        {/* <SortableContext items={bottomWidgets.map(w => w.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {bottomWidgets.map((widget) => (
               <DraggableWidget key={widget.id} id={widget.id} gridClass={widget.gridClass}>
+                {renderWidget(widget.id)}
+              </DraggableWidget>
+            ))}
+          </div>
+        </SortableContext> */}
+        <SortableContext
+          items={bottomWidgets.map(w => w.id)}
+          strategy={rectSortingStrategy}
+        >
+          <div
+            className="
+              grid
+              gap-4
+              grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]
+              auto-rows-fr
+            "
+          >
+            {bottomWidgets.map(widget => (
+              <DraggableWidget
+                key={widget.id}
+                id={widget.id}
+                gridClass={widget.gridClass}
+              >
                 {renderWidget(widget.id)}
               </DraggableWidget>
             ))}
