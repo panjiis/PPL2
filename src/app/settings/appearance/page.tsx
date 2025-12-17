@@ -445,6 +445,7 @@ export default function ThemeCustomizerPage() {
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
+                  unoptimized
                 />
               ) : null}
             </div>
