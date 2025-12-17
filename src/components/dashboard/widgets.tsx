@@ -236,17 +236,6 @@ export function WarehouseWidget({
                 className="flex justify-between"
               >
                 <span>{warehouse.warehouse_name}</span>
-                <span
-                  className={`font-medium ${
-                    warehouse.is_active
-                      ? 'text-[hsl(var(--success-background))]'
-                      : 'text-[hsl(var(--danger-background))]'
-                  }`}
-                >
-                  {warehouse.is_active
-                    ? t("widgets.warehouse.active")
-                    : t("widgets.warehouse.inactive")}
-                </span>
               </li>
             ))
           ) : (
@@ -403,7 +392,7 @@ export function TopPerformersWidget({
             variant="outline"
             size="icon"
             className="ml-auto gap-2"
-            onClick={() => router.push("/employees")}
+            onClick={() => router.push("/personnel/employees")}
           >
             <ExternalLinkIcon />
           </Button>

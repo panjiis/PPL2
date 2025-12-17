@@ -38,6 +38,7 @@ export const OrderSchema = z.object({
   created_at: TimestampSchema,
   updated_at: TimestampSchema,
   order_items: z.array(OrderItemSchema),
+  payment_type: PaymentTypeSchema.optional()
 });
 
 export const OrderResponseSchema = z.object({

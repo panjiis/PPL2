@@ -468,8 +468,19 @@ export function UpdateDiscountModal({
             <Input label="Get Quantity" name="get_quantity" type="number" value={form.get_quantity} onChange={handleChange} />
           </>
         )}
-        <Input label="Min. Quantity" name="min_quantity" type="number" value={form.min_quantity} onChange={handleChange} />
-        <Input label="Max Usage Per Transaction" name="max_usage_per_transaction" variant="currency" value={form.max_usage_per_transaction} onChange={handleChange} />
+        <Input label="Min. Quantity" name="min_quantity" type="number" step={1} min={1} value={form.min_quantity} onChange={handleChange} />
+        <Input
+          label="Max Usage Per Transaction"
+          name="max_usage_per_transaction"
+          variant="currency"
+          value={form.max_usage_per_transaction}
+          onChange={(e) =>
+            setForm(prev => ({
+              ...prev,
+              max_usage_per_transaction: e.target.value,
+            }))
+          }
+        />
         <DatePicker
           label="Valid From"
           mode="single"

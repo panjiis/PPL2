@@ -12,12 +12,15 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { useRouter } from "next/navigation";
 import { Order } from "@/lib/types/pos/orders";
 import { formatCurrency, toDateTimeSeconds } from "@/lib/utils/string";
+import { OrderDetailModal } from "@/components/pos/order-modals";
 
 export default function OrderPage() {
   const { session, isLoading } = useSession();
   const router = useRouter();
 
   const [orders, setOrders] = useState<Order[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<number | null>(null);
+  const [orderDetailModalOpen, setOrderDetailModalOpen] = useState(false);
 
   useEffect(() => {
     if (isLoading || !session?.token) return;
@@ -83,7 +86,12 @@ export default function OrderPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push(`/pos/orders/${row.original.id}`)}>
+            <DropdownMenuItem
+              onClick={() => {
+                setSelectedOrder(row.original.id);
+                setOrderDetailModalOpen(true);
+              }}
+            >
               View Details
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -103,10 +111,19 @@ export default function OrderPage() {
         </div>
       </div>
 
+      <OrderDetailModal
+        open={orderDetailModalOpen}
+        onClose={() => {
+          setOrderDetailModalOpen(false);
+          setSelectedOrder(null);
+        }}
+        id={selectedOrder!}
+      />
+
       <DataView
         data={orders}
         columns={orderColumns}
-        searchableColumn="order_name"
+        searchableColumn="document_number"
         caption="List of point of sale orders in system."
         renderListItem={(order) => (
           <div

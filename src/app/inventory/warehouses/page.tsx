@@ -80,12 +80,6 @@ export default function WarehousesPage() {
       meta: { type: "string" as const },
     },
     {
-      accessorKey: "is_active",
-      header: "Active",
-      meta: { type: "string" as const },
-      cell: ({ row }) => (row.original.is_active ? "Yes" : "No"),
-    },
-    {
       id: "actions",
       cell: ({ row }) => (
         <DropdownMenu>
@@ -157,7 +151,6 @@ export default function WarehousesPage() {
             onClick={() => router.push(`/inventory/warehouses/${warehouse.warehouse_code}`)}
           >
             <div className="flex items-center gap-4">
-              <span className={`h-2 w-2 rounded-full ${warehouse.is_active ? "bg-green-500" : "bg-red-500"}`} />
               <div className="flex gap-2">
                 <p className="font-semibold">{warehouse.warehouse_name}</p>
                 <p className="text-xs font-mono bg-[hsl(var(--foreground))]/5 px-2 py-1 rounded w-fit">{warehouse.warehouse_code}</p>
@@ -173,7 +166,6 @@ export default function WarehousesPage() {
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className={`h-2 w-2 rounded-full shrink-0 ${warehouse.is_active ? "bg-green-500" : "bg-red-500"}`} />
                 <h3 className="font-bold text-lg truncate">{warehouse.warehouse_name}</h3>
                 <p className="text-sm font-mono bg-[hsl(var(--foreground))]/5 px-2 py-1 rounded w-fit">{warehouse.warehouse_code}</p>
               </div>

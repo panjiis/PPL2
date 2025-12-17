@@ -59,28 +59,83 @@ export function toDate(value: unknown): Date | null {
   return null;
 }
 
+export function toDateWithTimezone(
+  value: unknown,
+  timeZone: string
+): Date | null {
+  if (!value) return null;
+
+  let date: Date;
+
+  if (value instanceof Date) {
+    date = value;
+  } else if (
+    typeof value === "object" &&
+    value !== null &&
+    "seconds" in value &&
+    typeof (value as Record<string, unknown>).seconds === "number"
+  ) {
+    const { seconds, nanos = 0 } = value as {
+      seconds: number;
+      nanos?: number;
+    };
+    date = new Date(seconds * 1000 + Math.floor(nanos / 1_000_000));
+  } else {
+    return null;
+  }
+
+  const tzDate = new Date(
+    date.toLocaleString("en-US", { timeZone })
+  );
+
+  return tzDate;
+}
+
+
 export function toDateOnly(value: unknown): string | null {
   const d = toDate(value);
   if (!d) return null;
   return d.toISOString().split("T")[0]; // YYYY-MM-DD
 }
 
+export function pad(n: number): string {
+  return n.toString().padStart(2, "0");
+}
+
 export function toDateTimeMinutes(value: unknown): string | null {
   const d = toDate(value);
   if (!d) return null;
-  const iso = d.toISOString();
-  return iso.substring(0, 16).replace("T", " "); // YYYY-MM-DD HH:MM
+
+  return (
+    d.getFullYear() +
+    "-" +
+    pad(d.getMonth() + 1) +
+    "-" +
+    pad(d.getDate()) +
+    " " +
+    pad(d.getHours()) +
+    ":" +
+    pad(d.getMinutes())
+  );
 }
 
 export function toDateTimeSeconds(value: unknown): string | null {
   const d = toDate(value);
   if (!d) return null;
-  const iso = d.toLocaleString();
-  return iso.substring(0, 19).replace("T", " "); // YYYY-MM-DD HH:MM:SS
-}
 
-export function pad(n: number) {
-  return n.toString().padStart(2, "0");
+  return (
+    d.getFullYear() +
+    "-" +
+    pad(d.getMonth() + 1) +
+    "-" +
+    pad(d.getDate()) +
+    " " +
+    pad(d.getHours()) +
+    ":" +
+    pad(d.getMinutes()) +
+    ":" +
+    pad(d.getSeconds())
+  );
 }
 
 /**

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "next-themes";
 import { Download, Upload } from "lucide-react";
+import Image from "next/image";
 
 const themeVariables = [
   { name: "background", label: "Background" },
@@ -433,6 +434,20 @@ export default function ThemeCustomizerPage() {
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">Store Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2 flex flex-col gap-2">
+              {storeForm.image_url ? (
+                <Image
+                  src={storeForm.image_url}
+                  alt="Store Preview"
+                  width={480}
+                  height={480}
+                  className="h-auto w-full object-cover rounded border border-[hsl(var(--border))]"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              ) : null}
+            </div>
             <Input
               label="Store Name"
               name="name"
